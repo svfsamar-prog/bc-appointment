@@ -482,7 +482,7 @@
 
     function getWebAppUrl() {
         var meta = document.querySelector('meta[name="apps-script-web-app-url"]');
-        return (window.APPS_SCRIPT_WEB_APP_URL || (meta && meta.content) || '').trim();
+        return (window.APPS_SCRIPT_WEB_APP_URL || (meta && meta.content) || DEFAULT_APPS_SCRIPT_WEB_APP_URL || '').trim();
     }
 
     function callBackend(action, payload) {
