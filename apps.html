@@ -1,0 +1,818 @@
+<!-- ── Loading Overlay ──────────────────────────────────────── -->
+<div id="loading-overlay">
+    <div class="loader-logo-row">
+        <img src="https://res.cloudinary.com/date69bba/image/upload/v1774602823/SanjivaniVikasLogo_new_2_hpwra4.png"
+            alt="SVF Logo">
+        <div class="loader-divider"></div>
+        <img src="https://res.cloudinary.com/date69bba/image/upload/v1776667693/uco-bank-logo_1_i04gtr.png"
+            alt="UCO Bank Logo">
+    </div>
+    <div class="loader-title">BC / BCA Appointment Form</div>
+    <div class="spinner"></div>
+    <div class="loader-status" id="loader-status">Loading branch data…</div>
+</div>
+
+<!-- ── Sticky Header ─────────────────────────────────────────── -->
+<header id="app-header">
+    <div class="header-inner">
+        <img src="https://res.cloudinary.com/date69bba/image/upload/v1774602823/SanjivaniVikasLogo_new_2_hpwra4.png"
+            alt="Sanjivani Vikas Foundation" class="header-logo">
+        <div class="header-title">BC / BCA<br>Appointment Form</div>
+        <img src="https://res.cloudinary.com/date69bba/image/upload/v1776667693/uco-bank-logo_1_i04gtr.png"
+            alt="UCO Bank" class="header-logo right">
+    </div>
+</header>
+
+<!-- ── Progress Bar ──────────────────────────────────────────── -->
+<div id="progress-bar-wrap">
+    <div id="progress-bar"></div>
+</div>
+
+<!-- ── Main Form ─────────────────────────────────────────────── -->
+<div id="main-content">
+
+    <!-- SECTION 1 – AUTO FILLED -->
+    <div class="section-card">
+        <div class="section-header">
+            <span class="section-icon">🏢</span>
+            <span class="section-title">Partner Information</span>
+        </div>
+        <div class="section-body">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>BC Partner</label>
+                    <input type="text" id="bcPartner" value="Sanjivani Vikas Foundation" class="locked" readonly>
+                    <span class="locked-badge">AUTO FILLED</span>
+                </div>
+                <div class="form-group">
+                    <label>Bank</label>
+                    <input type="text" id="bank" value="UCO Bank" class="locked" readonly>
+                    <span class="locked-badge">AUTO FILLED</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 2 – LOCATION DETAILS -->
+    <div class="section-card">
+        <div class="section-header">
+            <span class="section-icon">📍</span>
+            <span class="section-title">Location Details</span>
+        </div>
+        <div class="section-body">
+            <div class="form-grid">
+
+                <div class="form-group">
+                    <label>State <span class="required-mark">*</span></label>
+                    <select id="state" onchange="onStateChange()">
+                        <option value="">— Select State —</option>
+                    </select>
+                    <span class="field-error" id="err-state">Please select a State.</span>
+                </div>
+
+                <div class="form-group">
+                    <label>Region / Zone <span class="required-mark">*</span></label>
+                    <select id="zone" onchange="onZoneChange()" disabled>
+                        <option value="">— Select Zone —</option>
+                    </select>
+                    <span class="field-error" id="err-zone">Please select a Zone.</span>
+                </div>
+
+                <div class="form-group">
+                    <label>Branch <span class="required-mark">*</span></label>
+                    <select id="branch" onchange="onBranchChange()" disabled>
+                        <option value="">— Select Branch —</option>
+                    </select>
+                    <span class="field-error" id="err-branch">Please select a Branch.</span>
+                </div>
+
+                <div class="form-group">
+                    <label>Branch Code</label>
+                    <input type="text" id="branchCode" class="locked" readonly
+                        placeholder="Auto-filled on branch selection">
+                    <span class="locked-badge">AUTO FILLED</span>
+                </div>
+
+                <div class="form-group">
+                    <label>District</label>
+                    <input type="text" id="district" placeholder="Enter district name" autocomplete="off">
+                </div>
+
+                <div class="form-group">
+                    <label>Block</label>
+                    <input type="text" id="block" placeholder="Enter block name" autocomplete="off">
+                </div>
+
+                <div class="form-group">
+                    <label>Village Name</label>
+                    <input type="text" id="villageName" placeholder="Enter village name" autocomplete="off">
+                </div>
+
+                <div class="form-group">
+                    <label>Village Code</label>
+                    <input type="text" id="villageCode" placeholder="Enter village code" autocomplete="off"
+                        inputmode="numeric">
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 3 – PERSONAL DETAILS -->
+    <div class="section-card">
+        <div class="section-header">
+            <span class="section-icon">👤</span>
+            <span class="section-title">Personal Details</span>
+        </div>
+        <div class="section-body">
+            <div class="form-grid">
+
+                <div class="form-group">
+                    <label>CSP Name <span class="required-mark">*</span></label>
+                    <input type="text" id="cspName" placeholder="Full name of CSP agent" autocomplete="off">
+                    <span class="field-error" id="err-cspName">CSP Name is required.</span>
+                </div>
+
+                <div class="form-group">
+                    <label>Father's Name <span class="required-mark">*</span></label>
+                    <input type="text" id="fathersName" placeholder="Father's full name" autocomplete="off">
+                    <span class="field-error" id="err-fathersName">Father's Name is required.</span>
+                </div>
+
+                <div class="form-group">
+                    <label>Contact Number <span class="required-mark">*</span></label>
+                    <input type="tel" id="contactNumber" placeholder="10-digit mobile number" maxlength="10"
+                        inputmode="numeric" autocomplete="off">
+                    <span class="field-error" id="err-contactNumber">Enter a valid 10-digit number.</span>
+                </div>
+
+                <div class="form-group">
+                    <label>Alternate Contact Number</label>
+                    <input type="tel" id="altContactNo" placeholder="10-digit alternate number" maxlength="10"
+                        inputmode="numeric" autocomplete="off">
+                    <span class="field-error" id="err-altContactNo">Enter a valid 10-digit number.</span>
+                </div>
+
+                <div class="form-group">
+                    <label>Date of Birth</label>
+                    <input type="date" id="dob" max="">
+                </div>
+
+                <div class="form-group">
+                    <label>Gender</label>
+                    <div class="toggle-group" id="gender-group">
+                        <button type="button" class="toggle-btn"
+                            onclick="selectToggle('gender-group','Male')">Male</button>
+                        <button type="button" class="toggle-btn"
+                            onclick="selectToggle('gender-group','Female')">Female</button>
+                        <button type="button" class="toggle-btn"
+                            onclick="selectToggle('gender-group','Other')">Other</button>
+                    </div>
+                    <input type="hidden" id="gender" value="">
+                </div>
+
+                <div class="form-group col-full">
+                    <label>Address</label>
+                    <textarea id="address" rows="2" placeholder="Full residential address"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Pin Code</label>
+                    <input type="text" id="pinCode" placeholder="6-digit PIN code" maxlength="6" inputmode="numeric"
+                        autocomplete="off">
+                    <span class="field-error" id="err-pinCode">Enter a valid 6-digit PIN code.</span>
+                </div>
+
+                <div class="form-group">
+                    <label>Caste</label>
+                    <select id="caste">
+                        <option value="">— Select Caste —</option>
+                        <option>General</option>
+                        <option>OBC</option>
+                        <option>SC</option>
+                        <option>ST</option>
+                    </select>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 4 – KYC DETAILS -->
+    <div class="section-card">
+        <div class="section-header">
+            <span class="section-icon">🪪</span>
+            <span class="section-title">KYC Details</span>
+        </div>
+        <div class="section-body">
+            <div class="form-grid">
+
+                <div class="form-group">
+                    <label>Aadhaar Number</label>
+                    <input type="text" id="aadhaarNo" placeholder="12-digit Aadhaar number" maxlength="12"
+                        inputmode="numeric" autocomplete="off">
+                    <span class="field-error" id="err-aadhaarNo">Enter a valid 12-digit Aadhaar number.</span>
+                </div>
+
+                <div class="form-group">
+                    <label>PAN Number</label>
+                    <input type="text" id="panNo" placeholder="e.g. ABCDE1234F" maxlength="10"
+                        style="text-transform:uppercase" autocomplete="off">
+                    <span class="field-error" id="err-panNo">Enter a valid PAN (e.g. ABCDE1234F).</span>
+                </div>
+
+                <div class="form-group">
+                    <label>Other ID Type</label>
+                    <select id="otherIdType">
+                        <option value="">— Select ID Type —</option>
+                        <option>Voter ID</option>
+                        <option>Driving Licence</option>
+                        <option>Passport</option>
+                        <option>Ration Card</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Other ID Number</label>
+                    <input type="text" id="otherIdNo" placeholder="ID document number" autocomplete="off">
+                </div>
+
+                <div class="form-group">
+                    <label>Agent CIF Number</label>
+                    <input type="text" id="agentCifNo" placeholder="CIF number" autocomplete="off" inputmode="numeric">
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 5 – BANK DETAILS -->
+    <div class="section-card">
+        <div class="section-header">
+            <span class="section-icon">🏦</span>
+            <span class="section-title">Bank Details</span>
+        </div>
+        <div class="section-body">
+            <div class="form-grid">
+
+                <div class="form-group">
+                    <label>Settlement Account Number</label>
+                    <input type="text" id="settlementAccount" placeholder="Settlement account number"
+                        inputmode="numeric" autocomplete="off">
+                </div>
+
+                <div class="form-group">
+                    <label>Saving Account Number</label>
+                    <input type="text" id="savingAccount" placeholder="Saving account number" inputmode="numeric"
+                        autocomplete="off">
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 6 – PROFESSIONAL DETAILS -->
+    <div class="section-card">
+        <div class="section-header">
+            <span class="section-icon">💼</span>
+            <span class="section-title">Professional Details</span>
+        </div>
+        <div class="section-body">
+            <div class="form-grid">
+
+                <div class="form-group">
+                    <label>Education</label>
+                    <select id="education">
+                        <option value="">— Select Education —</option>
+                        <option>Intermediate</option>
+                        <option>Graduate</option>
+                        <option>Post Graduate</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Date of Joining (DOJ)</label>
+                    <input type="date" id="doj">
+                </div>
+
+                <div class="form-group col-full">
+                    <label>Upload Purpose</label>
+                    <input type="text" id="uploadPurpose" placeholder="Purpose of this application upload"
+                        autocomplete="off">
+                </div>
+
+                <div class="form-group">
+                    <label>SHG Member</label>
+                    <div class="toggle-group" id="shgMember-group">
+                        <button type="button" class="toggle-btn"
+                            onclick="selectToggle('shgMember-group','Yes')">Yes</button>
+                        <button type="button" class="toggle-btn"
+                            onclick="selectToggle('shgMember-group','No')">No</button>
+                    </div>
+                    <input type="hidden" id="shgMember" value="">
+                </div>
+
+                <div class="form-group">
+                    <label>Physically Challenged</label>
+                    <div class="toggle-group" id="physicallyChallenged-group">
+                        <button type="button" class="toggle-btn"
+                            onclick="selectToggle('physicallyChallenged-group','Yes')">Yes</button>
+                        <button type="button" class="toggle-btn"
+                            onclick="selectToggle('physicallyChallenged-group','No')">No</button>
+                    </div>
+                    <input type="hidden" id="physicallyChallenged" value="">
+                </div>
+
+                <div class="form-group">
+                    <label>Network Service Provider</label>
+                    <select id="networkProvider">
+                        <option value="">— Select Provider —</option>
+                        <option>Airtel</option>
+                        <option>Jio</option>
+                        <option>BSNL</option>
+                        <option>Vi</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Mail ID</label>
+                    <input type="email" id="mailId" placeholder="email@example.com" inputmode="email"
+                        autocomplete="off">
+                    <span class="field-error" id="err-mailId">Enter a valid email address.</span>
+                </div>
+
+                <div class="form-group col-full">
+                    <label>Bank Mitra Any Other Activity</label>
+                    <textarea id="bankMitraActivity" rows="2"
+                        placeholder="Describe any other activities the Bank Mitra is involved in"></textarea>
+                </div>
+
+                <div class="form-group col-full">
+                    <label>Replaced Agent Details</label>
+                    <textarea id="replacedAgent" rows="2"
+                        placeholder="Details of agent being replaced (if applicable)"></textarea>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 7 – IIBF DETAILS -->
+    <div class="section-card">
+        <div class="section-header">
+            <span class="section-icon">📜</span>
+            <span class="section-title">IIBF Certification</span>
+        </div>
+        <div class="section-body">
+            <div class="form-grid">
+
+                <div class="form-group col-full">
+                    <label>IIBF Certified?</label>
+                    <div class="toggle-group" id="iibfCertified-group">
+                        <button type="button" class="toggle-btn" onclick="onIIBFChange('Yes')">Yes</button>
+                        <button type="button" class="toggle-btn" onclick="onIIBFChange('No')">No</button>
+                    </div>
+                    <input type="hidden" id="iibfCertified" value="">
+                </div>
+
+                <div class="form-group" id="iibf-cert-wrap" style="display:none;">
+                    <label>IIBF Certificate Number <span class="required-mark">*</span></label>
+                    <input type="text" id="iibfCertificate" placeholder="e.g. IIBF202600123" autocomplete="off">
+                    <span class="field-error" id="err-iibfCertificate">IIBF Certificate Number is required when
+                        certified.</span>
+                </div>
+
+                <div class="form-group" id="iibf-date-wrap" style="display:none;">
+                    <label>Certificate Date</label>
+                    <input type="date" id="certificateDate">
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div><!-- /main-content -->
+
+<!-- ── Submit Button ─────────────────────────────────────────── -->
+<div class="submit-wrap">
+    <button type="button" class="btn-submit" id="submitBtn" onclick="handleSubmit()">
+        <div class="btn-spinner"></div>
+        <span class="btn-text">📤 Submit Application</span>
+    </button>
+</div>
+
+<!-- ── Success Screen ─────────────────────────────────────────── -->
+<div class="screen-overlay" id="success-screen">
+    <div class="screen-card">
+        <div class="success-icon">✅</div>
+        <div class="success-title">Application Submitted!</div>
+        <div class="success-subtitle">Your BC/BCA appointment has been recorded successfully.</div>
+        <div class="ref-box">
+            <div class="ref-label">Reference ID</div>
+            <div class="ref-id" id="s-refId">—</div>
+            <div class="ref-time" id="s-refTime">—</div>
+        </div>
+        <button class="btn-action btn-primary-action" onclick="resetForm()">📝 New Application</button>
+    </div>
+</div>
+
+<!-- ── Error Screen ───────────────────────────────────────────── -->
+<div class="screen-overlay" id="error-screen">
+    <div class="screen-card">
+        <div class="error-icon">❌</div>
+        <div class="error-title">Submission Failed</div>
+        <div class="error-msg-box" id="e-msg">An unexpected error occurred.</div>
+        <button class="btn-action btn-primary-action" onclick="retrySubmit()">🔄 Retry Submission</button>
+        <button class="btn-action btn-secondary-action" onclick="hideErrorScreen()">✏️ Edit Form</button>
+    </div>
+</div>
+
+<!-- ── JavaScript ─────────────────────────────────────────────── -->
+<script>
+    // ── State ──────────────────────────────────────────────────────
+    var masterRows = [];   // [[state, zone, branchId, branch], ...]
+    var submitBlocked = false;
+
+    // ── Init ───────────────────────────────────────────────────────
+    window.addEventListener('DOMContentLoaded', function () {
+        setMaxDOB();
+        updateProgress();
+        loadData();
+    });
+
+    function setMaxDOB() {
+        var today = new Date();
+        today.setFullYear(today.getFullYear() - 18);
+        document.getElementById('dob').max = today.toISOString().split('T')[0];
+    }
+
+    // ── Load Settings + Master Data ────────────────────────────────
+    function loadData() {
+        setLoaderStatus('Loading settings…');
+        google.script.run
+            .withSuccessHandler(function (res) {
+                if (!res.success) {
+                    showFatalError('Settings error: ' + res.error);
+                    return;
+                }
+                setLoaderStatus('Loading branch master data…');
+                google.script.run
+                    .withSuccessHandler(function (mRes) {
+                        if (!mRes.success) {
+                            showFatalError('Branch data error: ' + mRes.error);
+                            return;
+                        }
+                        masterRows = mRes.data;
+                        populateStates();
+                        setLoaderStatus('Ready!');
+                        setTimeout(hideLoader, 400);
+                        updateProgress();
+                    })
+                    .withFailureHandler(function (err) { showFatalError(err.message); })
+                    .getMasterData();
+            })
+            .withFailureHandler(function (err) { showFatalError(err.message); })
+            .getSettings();
+    }
+
+    function setLoaderStatus(msg) {
+        document.getElementById('loader-status').textContent = msg;
+    }
+
+    function hideLoader() {
+        document.getElementById('loading-overlay').classList.add('hide');
+    }
+
+    function showFatalError(msg) {
+        document.getElementById('loader-status').textContent = '⚠️ ' + msg;
+    }
+
+    // ── Branch Cascade ─────────────────────────────────────────────
+    // All filtering is done client-side on in-memory masterRows.
+    // No repeated server calls.
+
+    function unique(arr) {
+        return arr.filter(function (v, i, a) { return v && a.indexOf(v) === i; }).sort();
+    }
+
+    function populateStates() {
+        var states = unique(masterRows.map(function (r) { return r[0]; }));
+        var sel = document.getElementById('state');
+        sel.innerHTML = '<option value="">— Select State —</option>';
+        states.forEach(function (s) {
+            var o = document.createElement('option');
+            o.value = o.textContent = s;
+            sel.appendChild(o);
+        });
+    }
+
+    function onStateChange() {
+        var state = document.getElementById('state').value;
+        clearError('state');
+        // Reset zone
+        var zoneSel = document.getElementById('zone');
+        zoneSel.innerHTML = '<option value="">— Select Zone —</option>';
+        zoneSel.disabled = !state;
+        document.getElementById('branch').innerHTML = '<option value="">— Select Branch —</option>';
+        document.getElementById('branch').disabled = true;
+        document.getElementById('branchCode').value = '';
+
+        if (!state) return;
+        var zones = unique(
+            masterRows.filter(function (r) { return r[0] === state; }).map(function (r) { return r[1]; })
+        );
+        zones.forEach(function (z) {
+            var o = document.createElement('option');
+            o.value = o.textContent = z;
+            zoneSel.appendChild(o);
+        });
+        updateProgress();
+    }
+
+    function onZoneChange() {
+        var state = document.getElementById('state').value;
+        var zone = document.getElementById('zone').value;
+        clearError('zone');
+        var brSel = document.getElementById('branch');
+        brSel.innerHTML = '<option value="">— Select Branch —</option>';
+        brSel.disabled = !zone;
+        document.getElementById('branchCode').value = '';
+
+        if (!zone) return;
+        var branches = masterRows.filter(function (r) { return r[0] === state && r[1] === zone; });
+        // Sort by branch name
+        branches.sort(function (a, b) { return a[3].localeCompare(b[3]); });
+        branches.forEach(function (b) {
+            var o = document.createElement('option');
+            o.value = b[3];
+            o.textContent = b[3];
+            o.dataset.code = b[2]; // BRNCH_ID
+            brSel.appendChild(o);
+        });
+        updateProgress();
+    }
+
+    function onBranchChange() {
+        var sel = document.getElementById('branch');
+        clearError('branch');
+        var opt = sel.options[sel.selectedIndex];
+        document.getElementById('branchCode').value = (opt && opt.dataset.code) ? opt.dataset.code : '';
+        updateProgress();
+    }
+
+    // ── Toggle Buttons ─────────────────────────────────────────────
+    function selectToggle(groupId, value) {
+        var group = document.getElementById(groupId);
+        var buttons = group.querySelectorAll('.toggle-btn');
+        buttons.forEach(function (b) {
+            b.classList.toggle('active', b.textContent.trim() === value);
+        });
+        // Hidden input id = groupId minus '-group'
+        var inputId = groupId.replace('-group', '');
+        document.getElementById(inputId).value = value;
+        updateProgress();
+    }
+
+    // ── IIBF Toggle Logic ──────────────────────────────────────────
+    function onIIBFChange(value) {
+        selectToggle('iibfCertified-group', value);
+        var show = (value === 'Yes');
+        document.getElementById('iibf-cert-wrap').style.display = show ? '' : 'none';
+        document.getElementById('iibf-date-wrap').style.display = show ? '' : 'none';
+        if (!show) {
+            document.getElementById('iibfCertificate').value = '';
+            document.getElementById('certificateDate').value = '';
+            clearError('iibfCertificate');
+        }
+    }
+
+    // ── Progress Bar ───────────────────────────────────────────────
+    function updateProgress() {
+        var fields = ['state', 'zone', 'branch', 'cspName', 'fathersName', 'contactNumber'];
+        var filled = fields.filter(function (id) { return document.getElementById(id) && document.getElementById(id).value.trim(); }).length;
+        var pct = Math.round((filled / fields.length) * 100);
+        document.getElementById('progress-bar').style.width = pct + '%';
+    }
+
+    // Listen to input changes for progress
+    document.addEventListener('input', updateProgress);
+    document.addEventListener('change', updateProgress);
+
+    // ── Validation ─────────────────────────────────────────────────
+    function showError(id, show) {
+        var el = document.getElementById('err-' + id);
+        var input = document.getElementById(id);
+        if (el) el.classList.toggle('show', show);
+        if (input) input.classList.toggle('error', show);
+    }
+    function clearError(id) { showError(id, false); }
+
+    function validateForm() {
+        var valid = true;
+
+        // Required fields
+        var required = [
+            { id: 'state', msg: null },
+            { id: 'zone', msg: null },
+            { id: 'branch', msg: null },
+            { id: 'cspName', msg: null },
+            { id: 'fathersName', msg: null },
+            { id: 'contactNumber', msg: null }
+        ];
+        required.forEach(function (f) {
+            var val = document.getElementById(f.id).value.trim();
+            if (!val) { showError(f.id, true); valid = false; }
+            else { clearError(f.id); }
+        });
+
+        // Contact: 10 digits
+        var contact = document.getElementById('contactNumber').value.trim();
+        if (contact && !/^\d{10}$/.test(contact)) { showError('contactNumber', true); valid = false; }
+
+        // Alt contact: 10 digits if provided
+        var alt = document.getElementById('altContactNo').value.trim();
+        if (alt && !/^\d{10}$/.test(alt)) { showError('altContactNo', true); valid = false; }
+        else clearError('altContactNo');
+
+        // Aadhaar: 12 digits if provided
+        var aadh = document.getElementById('aadhaarNo').value.trim();
+        if (aadh && !/^\d{12}$/.test(aadh)) { showError('aadhaarNo', true); valid = false; }
+        else clearError('aadhaarNo');
+
+        // PAN: ABCDE1234F format if provided
+        var pan = document.getElementById('panNo').value.trim().toUpperCase();
+        if (pan && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(pan)) { showError('panNo', true); valid = false; }
+        else clearError('panNo');
+
+        // Pin code: 6 digits if provided
+        var pin = document.getElementById('pinCode').value.trim();
+        if (pin && !/^\d{6}$/.test(pin)) { showError('pinCode', true); valid = false; }
+        else clearError('pinCode');
+
+        // Email if provided
+        var email = document.getElementById('mailId').value.trim();
+        if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showError('mailId', true); valid = false; }
+        else clearError('mailId');
+
+        // IIBF certificate number if certified = Yes
+        var iibfCert = document.getElementById('iibfCertified').value;
+        if (iibfCert === 'Yes') {
+            var certNo = document.getElementById('iibfCertificate').value.trim();
+            if (!certNo) { showError('iibfCertificate', true); valid = false; }
+            else clearError('iibfCertificate');
+        }
+
+        // Scroll to first error
+        if (!valid) {
+            var firstErr = document.querySelector('.field-error.show');
+            if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        return valid;
+    }
+
+    // ── Collect Form Data ──────────────────────────────────────────
+    // All text fields are uppercased before submission.
+    // Account numbers are stored as strings to preserve leading zeros.
+    function u(id) { return document.getElementById(id).value.trim().toUpperCase(); }
+    function v(id) { return document.getElementById(id).value.trim(); }   // raw (no case change)
+
+    function collectFormData() {
+        return {
+            state:               u('state'),
+            zone:                u('zone'),
+            district:            u('district'),
+            block:               u('block'),
+            branch:              u('branch'),
+            branchCode:          u('branchCode'),
+            villageName:         u('villageName'),
+            villageCode:         v('villageCode'),          // numeric code — keep as-is
+            cspName:             u('cspName'),
+            fathersName:         u('fathersName'),
+            contactNumber:       v('contactNumber'),        // digits only
+            altContactNo:        v('altContactNo'),         // digits only
+            dob:                 document.getElementById('dob').value,
+            gender:              document.getElementById('gender').value,
+            address:             u('address'),
+            pinCode:             v('pinCode'),              // digits only
+            caste:               document.getElementById('caste').value,
+            aadhaarNo:           v('aadhaarNo'),            // digits only
+            panNo:               u('panNo'),
+            otherIdType:         document.getElementById('otherIdType').value,
+            otherIdNo:           u('otherIdNo'),
+            agentCifNo:          v('agentCifNo'),           // digits — preserve leading zeros as string
+            // Account numbers passed as plain strings; backend stores as text to preserve leading zeros
+            settlementAccount:   v('settlementAccount'),
+            savingAccount:       v('savingAccount'),
+            education:           document.getElementById('education').value,
+            doj:                 document.getElementById('doj').value,
+            uploadPurpose:       u('uploadPurpose'),
+            shgMember:           document.getElementById('shgMember').value,
+            physicallyChallenged: document.getElementById('physicallyChallenged').value,
+            networkProvider:     document.getElementById('networkProvider').value,
+            mailId:              v('mailId').toLowerCase(),  // email stays lowercase
+            bankMitraActivity:   u('bankMitraActivity'),
+            replacedAgent:       u('replacedAgent'),
+            iibfCertified:       document.getElementById('iibfCertified').value,
+            iibfCertificate:     u('iibfCertificate'),
+            certificateDate:     document.getElementById('certificateDate').value
+        };
+    }
+
+    // ── Submit Handler ─────────────────────────────────────────────
+    function handleSubmit() {
+        if (submitBlocked) return;
+        if (!validateForm()) return;
+
+        submitBlocked = true;
+        var btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        btn.classList.add('loading');
+
+        var formData = collectFormData();
+
+        google.script.run
+            .withSuccessHandler(function (res) {
+                btn.disabled = false;
+                btn.classList.remove('loading');
+                submitBlocked = false;
+                if (res.success) {
+                    showSuccessScreen(res.referenceId, res.submissionDateTime);
+                } else {
+                    showErrorScreen(res.error || 'Unknown error from server.');
+                }
+            })
+            .withFailureHandler(function (err) {
+                btn.disabled = false;
+                btn.classList.remove('loading');
+                submitBlocked = false;
+                showErrorScreen(err.message || 'Connection failed. Please try again.');
+            })
+            .submitApplication(formData);
+    }
+
+    // ── Success Screen ─────────────────────────────────────────────
+    function showSuccessScreen(refId, subTime) {
+        document.getElementById('s-refId').textContent = refId;
+        document.getElementById('s-refTime').textContent = '🕐 ' + subTime;
+        document.getElementById('success-screen').classList.add('show');
+        window.scrollTo(0, 0);
+    }
+
+    // ── Error Screen ───────────────────────────────────────────────
+    function showErrorScreen(msg) {
+        document.getElementById('e-msg').textContent = msg;
+        document.getElementById('error-screen').classList.add('show');
+        window.scrollTo(0, 0);
+    }
+
+    function hideErrorScreen() {
+        document.getElementById('error-screen').classList.remove('show');
+    }
+
+    function retrySubmit() {
+        hideErrorScreen();
+        handleSubmit();
+    }
+
+    // ── Reset Form ─────────────────────────────────────────────────
+    function resetForm() {
+        // Hide screens
+        document.getElementById('success-screen').classList.remove('show');
+        document.getElementById('error-screen').classList.remove('show');
+
+        // Reset all inputs
+        var inputs = document.querySelectorAll('input:not(.locked), select:not([id="state"]), textarea');
+        inputs.forEach(function (el) {
+            if (el.type === 'hidden') el.value = '';
+            else el.value = '';
+        });
+
+        // Reset state dropdown — keeps branch data loaded
+        document.getElementById('state').value = '';
+        document.getElementById('zone').innerHTML = '<option value="">— Select Zone —</option>';
+        document.getElementById('zone').disabled = true;
+        document.getElementById('branch').innerHTML = '<option value="">— Select Branch —</option>';
+        document.getElementById('branch').disabled = true;
+        document.getElementById('branchCode').value = '';
+
+        // Reset toggles
+        document.querySelectorAll('.toggle-btn').forEach(function (b) { b.classList.remove('active'); });
+
+        // Hide IIBF cert fields
+        document.getElementById('iibf-cert-wrap').style.display = 'none';
+        document.getElementById('iibf-date-wrap').style.display = 'none';
+
+        // Clear all errors
+        document.querySelectorAll('.field-error.show').forEach(function (e) { e.classList.remove('show'); });
+        document.querySelectorAll('.error').forEach(function (e) { e.classList.remove('error'); });
+
+        // Reset progress
+        updateProgress();
+
+        // Scroll to top
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+</script>
