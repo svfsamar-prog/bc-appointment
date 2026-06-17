@@ -451,30 +451,69 @@
     // ── Load Settings + Master Data ────────────────────────────────
     function loadData() {
         setLoaderStatus('Loading settings…');
-        google.script.run
-            .withSuccessHandler(function (res) {
+        callBackend('getSettings')
+            .then(function (res) {
                 if (!res.success) {
                     showFatalError('Settings error: ' + res.error);
                     return;
                 }
                 setLoaderStatus('Loading branch master data…');
-                google.script.run
-                    .withSuccessHandler(function (mRes) {
-                        if (!mRes.success) {
-                            showFatalError('Branch data error: ' + mRes.error);
-                            return;
-                        }
-                        masterRows = mRes.data;
-                        populateStates();
-                        setLoaderStatus('Ready!');
-                        setTimeout(hideLoader, 400);
-                        updateProgress();
-                    })
-                    .withFailureHandler(function (err) { showFatalError(err.message); })
-                    .getMasterData();
+                return callBackend('getMasterData');
             })
-            .withFailureHandler(function (err) { showFatalError(err.message); })
-            .getSettings();
+            .then(function (mRes) {
+                if (!mRes) return;
+                if (!mRes.success) {
+                    showFatalError('Branch data error: ' + mRes.error);
+                    return;
+                }
+                masterRows = mRes.data;
+                populateStates();
+                setLoaderStatus('Ready!');
+                setTimeout(hideLoader, 400);
+                updateProgress();
+            })
+            .catch(function (err) { showFatalError(err.message || String(err)); });
+    }
+
+    // ── Backend Bridge (Apps Script + GitHub Pages PWA) ────────────
+    function isAppsScriptHost() {
+        return typeof google !== 'undefined' && google.script && google.script.run;
+    }
+
+    function getWebAppUrl() {
+        var meta = document.querySelector('meta[name="apps-script-web-app-url"]');
+        return (window.APPS_SCRIPT_WEB_APP_URL || (meta && meta.content) || '').trim();
+    }
+
+    function callBackend(action, payload) {
+        if (isAppsScriptHost()) {
+            return new Promise(function (resolve, reject) {
+                google.script.run
+                    .withSuccessHandler(resolve)
+                    .withFailureHandler(reject)[action](payload);
+            });
+        }
+
+        var webAppUrl = getWebAppUrl();
+        if (!webAppUrl) {
+            return Promise.reject(new Error('GitHub Pages setup needed: add your deployed Apps Script Web App URL to the apps-script-web-app-url meta tag.'));
+        }
+
+        if (action === 'submitApplication') {
+            return fetch(webAppUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action: action, payload: payload })
+            }).then(readJsonResponse);
+        }
+
+        var url = webAppUrl + (webAppUrl.indexOf('?') === -1 ? '?' : '&') + 'api=' + encodeURIComponent(action);
+        return fetch(url, { cache: 'no-store' }).then(readJsonResponse);
+    }
+
+    function readJsonResponse(response) {
+        if (!response.ok) throw new Error('Server returned HTTP ' + response.status);
+        return response.json();
     }
 
     function setLoaderStatus(msg) {
@@ -733,8 +772,8 @@
 
         var formData = collectFormData();
 
-        google.script.run
-            .withSuccessHandler(function (res) {
+        callBackend('submitApplication', formData)
+            .then(function (res) {
                 btn.disabled = false;
                 btn.classList.remove('loading');
                 submitBlocked = false;
@@ -744,13 +783,12 @@
                     showErrorScreen(res.error || 'Unknown error from server.');
                 }
             })
-            .withFailureHandler(function (err) {
+            .catch(function (err) {
                 btn.disabled = false;
                 btn.classList.remove('loading');
                 submitBlocked = false;
                 showErrorScreen(err.message || 'Connection failed. Please try again.');
-            })
-            .submitApplication(formData);
+            });
     }
 
     // ── Success Screen ─────────────────────────────────────────────

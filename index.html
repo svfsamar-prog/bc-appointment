@@ -4,10 +4,1505 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#185FA5">
+  <meta name="description" content="Installable BC / BCA Appointment Form for SVF × UCO Bank.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="BC/BCA Form">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apps-script-web-app-url" content="https://script.google.com/macros/s/AKfycbxYObNNRCYpzYsYGpzTSDd3nv4VfhI5d2WWcKfIAX-yJzBnlgwXOIXKVqfaWbelL2UZ/exec">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <script>
+    if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('./sw.js').then(function (registration) {
+          registration.addEventListener('updatefound', function () {
+            var worker = registration.installing;
+            if (!worker) return;
+            worker.addEventListener('statechange', function () {
+              if (worker.state === 'installed' && navigator.serviceWorker.controller) {
+                window.location.reload();
+              }
+            });
+          });
+        });
+      });
+    }
+  </script>
   <title>BC / BCA Appointment Form</title>
-  <?!= include('styles'); ?>
+  <style>
+    /* ── Reset & Base ─────────────────────────────────────── */
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    :root {
+        --primary: #185FA5;
+        --primary-dark: #0f4070;
+        --primary-light: #e8f0fb;
+        --secondary: #0D9488;
+        --secondary-light: #e6f7f5;
+        --bg: #F8FAFC;
+        --card: #FFFFFF;
+        --text: #1e293b;
+        --text-muted: #64748b;
+        --border: #CBD5E1;
+        --border-focus: #185FA5;
+        --error: #DC2626;
+        --error-light: #FEF2F2;
+        --success: #059669;
+        --success-light: #ECFDF5;
+        --warning: #D97706;
+        --radius: 10px;
+        --shadow: 0 2px 12px rgba(24, 95, 165, 0.10);
+        --shadow-lg: 0 8px 32px rgba(24, 95, 165, 0.16);
+        --transition: 0.2s ease;
+        --min-touch: 48px;
+    }
+
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        font-size: 15px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        padding-bottom: 60px;
+    }
+
+    /* ── Loading Overlay ─────────────────────────────────── */
+    #loading-overlay {
+        position: fixed;
+        inset: 0;
+        background: var(--primary);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        transition: opacity 0.4s ease;
+    }
+
+    #loading-overlay.hide {
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .loader-logo-row {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        margin-bottom: 24px;
+    }
+
+    .loader-logo-row img {
+        height: 52px;
+        width: auto;
+        background: #fff;
+        border-radius: 8px;
+        padding: 6px 10px;
+    }
+
+    .loader-divider {
+        width: 2px;
+        height: 48px;
+        background: rgba(255, 255, 255, 0.4);
+        border-radius: 2px;
+    }
+
+    .loader-title {
+        color: #fff;
+        font-size: 18px;
+        font-weight: 600;
+        text-align: center;
+        margin-bottom: 32px;
+        padding: 0 24px;
+        opacity: 0.92;
+    }
+
+    .spinner {
+        width: 44px;
+        height: 44px;
+        border: 4px solid rgba(255, 255, 255, 0.3);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+
+    .loader-status {
+        color: rgba(255, 255, 255, 0.75);
+        font-size: 13px;
+        margin-top: 14px;
+    }
+
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    /* ── Sticky Header ───────────────────────────────────── */
+    #app-header {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: var(--primary);
+        padding: 10px 16px;
+        box-shadow: 0 2px 10px rgba(24, 95, 165, 0.25);
+    }
+
+    .header-inner {
+        max-width: 1000px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .header-logo {
+        height: 40px;
+        width: auto;
+        background: #fff;
+        border-radius: 6px;
+        padding: 4px 8px;
+        display: block;
+    }
+
+    .header-logo.right {
+        margin-left: auto;
+    }
+
+    .header-title {
+        color: #fff;
+        font-size: 14px;
+        font-weight: 700;
+        text-align: center;
+        line-height: 1.3;
+        letter-spacing: 0.01em;
+    }
+
+    @media (max-width: 480px) {
+        .header-title {
+            font-size: 12px;
+        }
+
+        .header-logo {
+            height: 34px;
+        }
+    }
+
+    /* ── Progress Bar ────────────────────────────────────── */
+    #progress-bar-wrap {
+        background: rgba(255, 255, 255, 0.2);
+        height: 4px;
+        position: sticky;
+        top: 62px;
+        z-index: 99;
+    }
+
+    #progress-bar {
+        height: 4px;
+        background: #fff;
+        width: 0%;
+        transition: width 0.4s ease;
+        border-radius: 0 2px 2px 0;
+    }
+
+    /* ── Main Content ────────────────────────────────────── */
+    #main-content {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px 14px;
+    }
+
+    /* ── Section Cards ───────────────────────────────────── */
+    .section-card {
+        background: var(--card);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        margin-bottom: 20px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+    }
+
+    .section-header {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        padding: 14px 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .section-icon {
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+
+    .section-title {
+        color: #fff;
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+    }
+
+    .section-body {
+        padding: 20px;
+    }
+
+    /* ── Form Grid ───────────────────────────────────────── */
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+
+    @media (max-width: 600px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .col-full {
+        grid-column: 1 / -1;
+    }
+
+    /* ── Form Groups ─────────────────────────────────────── */
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    label {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-muted);
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+    }
+
+    .required-mark {
+        color: var(--error);
+        margin-left: 2px;
+    }
+
+    input,
+    select,
+    textarea {
+        width: 100%;
+        min-height: var(--min-touch);
+        padding: 10px 14px;
+        border: 1.5px solid var(--border);
+        border-radius: 8px;
+        font-size: 15px;
+        color: var(--text);
+        background: #fff;
+        transition: border-color var(--transition), box-shadow var(--transition);
+        -webkit-appearance: none;
+        appearance: none;
+        font-family: inherit;
+    }
+
+    /* All text inputs show UPPERCASE as user types */
+    input[type="text"],
+    textarea {
+        text-transform: uppercase;
+    }
+
+    /* Exceptions: email, numeric-only, and date fields stay as-is */
+    input[type="email"],
+    input[type="tel"],
+    input[type="date"],
+    input[type="number"],
+    #villageCode,
+    #aadhaarNo,
+    #pinCode,
+    #contactNumber,
+    #altContactNo,
+    #settlementAccount,
+    #savingAccount,
+    #agentCifNo {
+        text-transform: none;
+    }
+
+    select {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        padding-right: 38px;
+        cursor: pointer;
+    }
+
+    textarea {
+        resize: vertical;
+        min-height: 80px;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+        outline: none;
+        border-color: var(--border-focus);
+        box-shadow: 0 0 0 3px rgba(24, 95, 165, 0.12);
+    }
+
+    input.locked,
+    select.locked {
+        background: var(--primary-light);
+        color: var(--primary);
+        font-weight: 600;
+        cursor: not-allowed;
+        border-color: rgba(24, 95, 165, 0.25);
+    }
+
+    input.error,
+    select.error,
+    textarea.error {
+        border-color: var(--error);
+        background: var(--error-light);
+    }
+
+    .field-error {
+        font-size: 12px;
+        color: var(--error);
+        font-weight: 500;
+        display: none;
+        margin-top: 2px;
+    }
+
+    .field-error.show {
+        display: block;
+    }
+
+    /* ── Radio / Toggle Groups ───────────────────────────── */
+    .toggle-group {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .toggle-btn {
+        min-height: var(--min-touch);
+        padding: 10px 18px;
+        border: 1.5px solid var(--border);
+        border-radius: 8px;
+        background: #fff;
+        color: var(--text-muted);
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all var(--transition);
+        touch-action: manipulation;
+        font-family: inherit;
+    }
+
+    .toggle-btn:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+
+    .toggle-btn.active {
+        background: var(--primary);
+        border-color: var(--primary);
+        color: #fff;
+        box-shadow: 0 2px 8px rgba(24, 95, 165, 0.3);
+    }
+
+    /* ── Hidden field ────────────────────────────────────── */
+    .hidden-field {
+        display: none !important;
+    }
+
+    /* ── Submit Button ───────────────────────────────────── */
+    .submit-wrap {
+        padding: 8px 14px 24px;
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .btn-submit {
+        width: 100%;
+        min-height: 54px;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        color: #fff;
+        border: none;
+        border-radius: var(--radius);
+        font-size: 17px;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        cursor: pointer;
+        box-shadow: var(--shadow-lg);
+        transition: all var(--transition);
+        touch-action: manipulation;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        font-family: inherit;
+    }
+
+    .btn-submit:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 12px 28px rgba(24, 95, 165, 0.28);
+    }
+
+    .btn-submit:active:not(:disabled) {
+        transform: translateY(0);
+    }
+
+    .btn-submit:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .btn-submit .btn-spinner {
+        width: 22px;
+        height: 22px;
+        border: 3px solid rgba(255, 255, 255, 0.4);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        display: none;
+    }
+
+    .btn-submit.loading .btn-spinner {
+        display: block;
+    }
+
+    .btn-submit.loading .btn-text {
+        display: none;
+    }
+
+    /* ── Screens (Success / Error) ───────────────────────── */
+    .screen-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: var(--bg);
+        z-index: 500;
+        overflow-y: auto;
+    }
+
+    .screen-overlay.show {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 32px 16px;
+    }
+
+    .screen-card {
+        background: var(--card);
+        border-radius: 16px;
+        box-shadow: var(--shadow-lg);
+        max-width: 480px;
+        width: 100%;
+        text-align: center;
+        padding: 40px 32px;
+        border: 1px solid var(--border);
+    }
+
+    /* Success */
+    .success-icon {
+        width: 72px;
+        height: 72px;
+        background: var(--success-light);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        font-size: 36px;
+    }
+
+    .success-title {
+        color: var(--success);
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+
+    .success-subtitle {
+        color: var(--text-muted);
+        font-size: 14px;
+        margin-bottom: 24px;
+    }
+
+    .ref-box {
+        background: var(--primary-light);
+        border: 1.5px solid rgba(24, 95, 165, 0.2);
+        border-radius: 10px;
+        padding: 16px 20px;
+        margin-bottom: 24px;
+    }
+
+    .ref-label {
+        font-size: 12px;
+        color: var(--text-muted);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-bottom: 4px;
+    }
+
+    .ref-id {
+        font-size: 20px;
+        font-weight: 800;
+        color: var(--primary);
+        letter-spacing: 0.04em;
+        word-break: break-all;
+    }
+
+    .ref-time {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin-top: 6px;
+    }
+
+    /* Error */
+    .error-icon {
+        width: 72px;
+        height: 72px;
+        background: var(--error-light);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        font-size: 36px;
+    }
+
+    .error-title {
+        color: var(--error);
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+
+    .error-msg-box {
+        background: var(--error-light);
+        border: 1px solid rgba(220, 38, 38, 0.2);
+        border-radius: 8px;
+        padding: 12px 16px;
+        font-size: 14px;
+        color: var(--error);
+        margin-bottom: 24px;
+        text-align: left;
+        word-break: break-word;
+    }
+
+    .btn-action {
+        width: 100%;
+        min-height: 48px;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        border: none;
+        transition: all var(--transition);
+        touch-action: manipulation;
+        font-family: inherit;
+        margin-top: 10px;
+    }
+
+    .btn-primary-action {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: #fff;
+        box-shadow: 0 4px 14px rgba(24, 95, 165, 0.3);
+    }
+
+    .btn-secondary-action {
+        background: var(--secondary-light);
+        color: var(--secondary);
+        border: 1.5px solid rgba(13, 148, 136, 0.3);
+    }
+
+    /* ── Divider ─────────────────────────────────────────── */
+    .section-divider {
+        height: 1px;
+        background: var(--border);
+        margin: 14px 0;
+    }
+
+    /* ── Info badge ──────────────────────────────────────── */
+    .locked-badge {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--primary);
+        background: var(--primary-light);
+        border-radius: 4px;
+        padding: 2px 7px;
+        display: inline-block;
+        margin-top: 4px;
+        letter-spacing: 0.04em;
+    }
+</style>
 </head>
 <body>
-  <?!= include('app'); ?>
+  <!-- ── Loading Overlay ──────────────────────────────────────── -->
+<div id="loading-overlay">
+    <div class="loader-logo-row">
+        <img src="https://res.cloudinary.com/date69bba/image/upload/v1774602823/SanjivaniVikasLogo_new_2_hpwra4.png"
+            alt="SVF Logo">
+        <div class="loader-divider"></div>
+        <img src="https://res.cloudinary.com/date69bba/image/upload/v1776667693/uco-bank-logo_1_i04gtr.png"
+            alt="UCO Bank Logo">
+    </div>
+    <div class="loader-title">BC / BCA Appointment Form</div>
+    <div class="spinner"></div>
+    <div class="loader-status" id="loader-status">Loading branch data…</div>
+</div>
+
+<!-- ── Sticky Header ─────────────────────────────────────────── -->
+<header id="app-header">
+    <div class="header-inner">
+        <img src="https://res.cloudinary.com/date69bba/image/upload/v1774602823/SanjivaniVikasLogo_new_2_hpwra4.png"
+            alt="Sanjivani Vikas Foundation" class="header-logo">
+        <div class="header-title">BC / BCA<br>Appointment Form</div>
+        <img src="https://res.cloudinary.com/date69bba/image/upload/v1776667693/uco-bank-logo_1_i04gtr.png"
+            alt="UCO Bank" class="header-logo right">
+    </div>
+</header>
+
+<!-- ── Progress Bar ──────────────────────────────────────────── -->
+<div id="progress-bar-wrap">
+    <div id="progress-bar"></div>
+</div>
+
+<!-- ── Main Form ─────────────────────────────────────────────── -->
+<div id="main-content">
+
+    <!-- SECTION 1 – AUTO FILLED -->
+    <div class="section-card">
+        <div class="section-header">
+            <span class="section-icon">🏢</span>
+            <span class="section-title">Partner Information</span>
+        </div>
+        <div class="section-body">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>BC Partner</label>
+                    <input type="text" id="bcPartner" value="Sanjivani Vikas Foundation" class="locked" readonly>
+                    <span class="locked-badge">AUTO FILLED</span>
+                </div>
+                <div class="form-group">
+                    <label>Bank</label>
+                    <input type="text" id="bank" value="UCO Bank" class="locked" readonly>
+                    <span class="locked-badge">AUTO FILLED</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 2 – LOCATION DETAILS -->
+    <div class="section-card">
+        <div class="section-header">
+            <span class="section-icon">📍</span>
+            <span class="section-title">Location Details</span>
+        </div>
+        <div class="section-body">
+            <div class="form-grid">
+
+                <div class="form-group">
+                    <label>State <span class="required-mark">*</span></label>
+                    <select id="state" onchange="onStateChange()">
+                        <option value="">— Select State —</option>
+                    </select>
+                    <span class="field-error" id="err-state">Please select a State.</span>
+                </div>
+
+                <div class="form-group">
+                    <label>Region / Zone <span class="required-mark">*</span></label>
+                    <select id="zone" onchange="onZoneChange()" disabled>
+                        <option value="">— Select Zone —</option>
+                    </select>
+                    <span class="field-error" id="err-zone">Please select a Zone.</span>
+                </div>
+
+                <div class="form-group">
+                    <label>Branch <span class="required-mark">*</span></label>
+                    <select id="branch" onchange="onBranchChange()" disabled>
+                        <option value="">— Select Branch —</option>
+                    </select>
+                    <span class="field-error" id="err-branch">Please select a Branch.</span>
+                </div>
+
+                <div class="form-group">
+                    <label>Branch Code</label>
+                    <input type="text" id="branchCode" class="locked" readonly
+                        placeholder="Auto-filled on branch selection">
+                    <span class="locked-badge">AUTO FILLED</span>
+                </div>
+
+                <div class="form-group">
+                    <label>District</label>
+                    <input type="text" id="district" placeholder="Enter district name" autocomplete="off">
+                </div>
+
+                <div class="form-group">
+                    <label>Block</label>
+                    <input type="text" id="block" placeholder="Enter block name" autocomplete="off">
+                </div>
+
+                <div class="form-group">
+                    <label>Village Name</label>
+                    <input type="text" id="villageName" placeholder="Enter village name" autocomplete="off">
+                </div>
+
+                <div class="form-group">
+                    <label>Village Code</label>
+                    <input type="text" id="villageCode" placeholder="Enter village code" autocomplete="off"
+                        inputmode="numeric">
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 3 – PERSONAL DETAILS -->
+    <div class="section-card">
+        <div class="section-header">
+            <span class="section-icon">👤</span>
+            <span class="section-title">Personal Details</span>
+        </div>
+        <div class="section-body">
+            <div class="form-grid">
+
+                <div class="form-group">
+                    <label>CSP Name <span class="required-mark">*</span></label>
+                    <input type="text" id="cspName" placeholder="Full name of CSP agent" autocomplete="off">
+                    <span class="field-error" id="err-cspName">CSP Name is required.</span>
+                </div>
+
+                <div class="form-group">
+                    <label>Father's Name <span class="required-mark">*</span></label>
+                    <input type="text" id="fathersName" placeholder="Father's full name" autocomplete="off">
+                    <span class="field-error" id="err-fathersName">Father's Name is required.</span>
+                </div>
+
+                <div class="form-group">
+                    <label>Contact Number <span class="required-mark">*</span></label>
+                    <input type="tel" id="contactNumber" placeholder="10-digit mobile number" maxlength="10"
+                        inputmode="numeric" autocomplete="off">
+                    <span class="field-error" id="err-contactNumber">Enter a valid 10-digit number.</span>
+                </div>
+
+                <div class="form-group">
+                    <label>Alternate Contact Number</label>
+                    <input type="tel" id="altContactNo" placeholder="10-digit alternate number" maxlength="10"
+                        inputmode="numeric" autocomplete="off">
+                    <span class="field-error" id="err-altContactNo">Enter a valid 10-digit number.</span>
+                </div>
+
+                <div class="form-group">
+                    <label>Date of Birth</label>
+                    <input type="date" id="dob" max="">
+                </div>
+
+                <div class="form-group">
+                    <label>Gender</label>
+                    <div class="toggle-group" id="gender-group">
+                        <button type="button" class="toggle-btn"
+                            onclick="selectToggle('gender-group','Male')">Male</button>
+                        <button type="button" class="toggle-btn"
+                            onclick="selectToggle('gender-group','Female')">Female</button>
+                        <button type="button" class="toggle-btn"
+                            onclick="selectToggle('gender-group','Other')">Other</button>
+                    </div>
+                    <input type="hidden" id="gender" value="">
+                </div>
+
+                <div class="form-group col-full">
+                    <label>Address</label>
+                    <textarea id="address" rows="2" placeholder="Full residential address"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Pin Code</label>
+                    <input type="text" id="pinCode" placeholder="6-digit PIN code" maxlength="6" inputmode="numeric"
+                        autocomplete="off">
+                    <span class="field-error" id="err-pinCode">Enter a valid 6-digit PIN code.</span>
+                </div>
+
+                <div class="form-group">
+                    <label>Caste</label>
+                    <select id="caste">
+                        <option value="">— Select Caste —</option>
+                        <option>General</option>
+                        <option>OBC</option>
+                        <option>SC</option>
+                        <option>ST</option>
+                    </select>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 4 – KYC DETAILS -->
+    <div class="section-card">
+        <div class="section-header">
+            <span class="section-icon">🪪</span>
+            <span class="section-title">KYC Details</span>
+        </div>
+        <div class="section-body">
+            <div class="form-grid">
+
+                <div class="form-group">
+                    <label>Aadhaar Number</label>
+                    <input type="text" id="aadhaarNo" placeholder="12-digit Aadhaar number" maxlength="12"
+                        inputmode="numeric" autocomplete="off">
+                    <span class="field-error" id="err-aadhaarNo">Enter a valid 12-digit Aadhaar number.</span>
+                </div>
+
+                <div class="form-group">
+                    <label>PAN Number</label>
+                    <input type="text" id="panNo" placeholder="e.g. ABCDE1234F" maxlength="10"
+                        style="text-transform:uppercase" autocomplete="off">
+                    <span class="field-error" id="err-panNo">Enter a valid PAN (e.g. ABCDE1234F).</span>
+                </div>
+
+                <div class="form-group">
+                    <label>Other ID Type</label>
+                    <select id="otherIdType">
+                        <option value="">— Select ID Type —</option>
+                        <option>Voter ID</option>
+                        <option>Driving Licence</option>
+                        <option>Passport</option>
+                        <option>Ration Card</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Other ID Number</label>
+                    <input type="text" id="otherIdNo" placeholder="ID document number" autocomplete="off">
+                </div>
+
+                <div class="form-group">
+                    <label>Agent CIF Number</label>
+                    <input type="text" id="agentCifNo" placeholder="CIF number" autocomplete="off" inputmode="numeric">
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 5 – BANK DETAILS -->
+    <div class="section-card">
+        <div class="section-header">
+            <span class="section-icon">🏦</span>
+            <span class="section-title">Bank Details</span>
+        </div>
+        <div class="section-body">
+            <div class="form-grid">
+
+                <div class="form-group">
+                    <label>Settlement Account Number</label>
+                    <input type="text" id="settlementAccount" placeholder="Settlement account number"
+                        inputmode="numeric" autocomplete="off">
+                </div>
+
+                <div class="form-group">
+                    <label>Saving Account Number</label>
+                    <input type="text" id="savingAccount" placeholder="Saving account number" inputmode="numeric"
+                        autocomplete="off">
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 6 – PROFESSIONAL DETAILS -->
+    <div class="section-card">
+        <div class="section-header">
+            <span class="section-icon">💼</span>
+            <span class="section-title">Professional Details</span>
+        </div>
+        <div class="section-body">
+            <div class="form-grid">
+
+                <div class="form-group">
+                    <label>Education</label>
+                    <select id="education">
+                        <option value="">— Select Education —</option>
+                        <option>Intermediate</option>
+                        <option>Graduate</option>
+                        <option>Post Graduate</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Date of Joining (DOJ)</label>
+                    <input type="date" id="doj">
+                </div>
+
+                <div class="form-group col-full">
+                    <label>Upload Purpose</label>
+                    <input type="text" id="uploadPurpose" placeholder="Purpose of this application upload"
+                        autocomplete="off">
+                </div>
+
+                <div class="form-group">
+                    <label>SHG Member</label>
+                    <div class="toggle-group" id="shgMember-group">
+                        <button type="button" class="toggle-btn"
+                            onclick="selectToggle('shgMember-group','Yes')">Yes</button>
+                        <button type="button" class="toggle-btn"
+                            onclick="selectToggle('shgMember-group','No')">No</button>
+                    </div>
+                    <input type="hidden" id="shgMember" value="">
+                </div>
+
+                <div class="form-group">
+                    <label>Physically Challenged</label>
+                    <div class="toggle-group" id="physicallyChallenged-group">
+                        <button type="button" class="toggle-btn"
+                            onclick="selectToggle('physicallyChallenged-group','Yes')">Yes</button>
+                        <button type="button" class="toggle-btn"
+                            onclick="selectToggle('physicallyChallenged-group','No')">No</button>
+                    </div>
+                    <input type="hidden" id="physicallyChallenged" value="">
+                </div>
+
+                <div class="form-group">
+                    <label>Network Service Provider</label>
+                    <select id="networkProvider">
+                        <option value="">— Select Provider —</option>
+                        <option>Airtel</option>
+                        <option>Jio</option>
+                        <option>BSNL</option>
+                        <option>Vi</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Mail ID</label>
+                    <input type="email" id="mailId" placeholder="email@example.com" inputmode="email"
+                        autocomplete="off">
+                    <span class="field-error" id="err-mailId">Enter a valid email address.</span>
+                </div>
+
+                <div class="form-group col-full">
+                    <label>Bank Mitra Any Other Activity</label>
+                    <textarea id="bankMitraActivity" rows="2"
+                        placeholder="Describe any other activities the Bank Mitra is involved in"></textarea>
+                </div>
+
+                <div class="form-group col-full">
+                    <label>Replaced Agent Details</label>
+                    <textarea id="replacedAgent" rows="2"
+                        placeholder="Details of agent being replaced (if applicable)"></textarea>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 7 – IIBF DETAILS -->
+    <div class="section-card">
+        <div class="section-header">
+            <span class="section-icon">📜</span>
+            <span class="section-title">IIBF Certification</span>
+        </div>
+        <div class="section-body">
+            <div class="form-grid">
+
+                <div class="form-group col-full">
+                    <label>IIBF Certified?</label>
+                    <div class="toggle-group" id="iibfCertified-group">
+                        <button type="button" class="toggle-btn" onclick="onIIBFChange('Yes')">Yes</button>
+                        <button type="button" class="toggle-btn" onclick="onIIBFChange('No')">No</button>
+                    </div>
+                    <input type="hidden" id="iibfCertified" value="">
+                </div>
+
+                <div class="form-group" id="iibf-cert-wrap" style="display:none;">
+                    <label>IIBF Certificate Number <span class="required-mark">*</span></label>
+                    <input type="text" id="iibfCertificate" placeholder="e.g. IIBF202600123" autocomplete="off">
+                    <span class="field-error" id="err-iibfCertificate">IIBF Certificate Number is required when
+                        certified.</span>
+                </div>
+
+                <div class="form-group" id="iibf-date-wrap" style="display:none;">
+                    <label>Certificate Date</label>
+                    <input type="date" id="certificateDate">
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div><!-- /main-content -->
+
+<!-- ── Submit Button ─────────────────────────────────────────── -->
+<div class="submit-wrap">
+    <button type="button" class="btn-submit" id="submitBtn" onclick="handleSubmit()">
+        <div class="btn-spinner"></div>
+        <span class="btn-text">📤 Submit Application</span>
+    </button>
+</div>
+
+<!-- ── Success Screen ─────────────────────────────────────────── -->
+<div class="screen-overlay" id="success-screen">
+    <div class="screen-card">
+        <div class="success-icon">✅</div>
+        <div class="success-title">Application Submitted!</div>
+        <div class="success-subtitle">Your BC/BCA appointment has been recorded successfully.</div>
+        <div class="ref-box">
+            <div class="ref-label">Reference ID</div>
+            <div class="ref-id" id="s-refId">—</div>
+            <div class="ref-time" id="s-refTime">—</div>
+        </div>
+        <button class="btn-action btn-primary-action" onclick="resetForm()">📝 New Application</button>
+    </div>
+</div>
+
+<!-- ── Error Screen ───────────────────────────────────────────── -->
+<div class="screen-overlay" id="error-screen">
+    <div class="screen-card">
+        <div class="error-icon">❌</div>
+        <div class="error-title">Submission Failed</div>
+        <div class="error-msg-box" id="e-msg">An unexpected error occurred.</div>
+        <button class="btn-action btn-primary-action" onclick="retrySubmit()">🔄 Retry Submission</button>
+        <button class="btn-action btn-secondary-action" onclick="hideErrorScreen()">✏️ Edit Form</button>
+    </div>
+</div>
+
+<!-- ── JavaScript ─────────────────────────────────────────────── -->
+<script>
+    // ── State ──────────────────────────────────────────────────────
+    var masterRows = [];   // [[state, zone, branchId, branch], ...]
+    var submitBlocked = false;
+
+    // ── Init ───────────────────────────────────────────────────────
+    window.addEventListener('DOMContentLoaded', function () {
+        setMaxDOB();
+        updateProgress();
+        loadData();
+    });
+
+    function setMaxDOB() {
+        var today = new Date();
+        today.setFullYear(today.getFullYear() - 18);
+        document.getElementById('dob').max = today.toISOString().split('T')[0];
+    }
+
+    // ── Load Settings + Master Data ────────────────────────────────
+    function loadData() {
+        setLoaderStatus('Loading settings…');
+        callBackend('getSettings')
+            .then(function (res) {
+                if (!res.success) {
+                    showFatalError('Settings error: ' + res.error);
+                    return;
+                }
+                setLoaderStatus('Loading branch master data…');
+                return callBackend('getMasterData');
+            })
+            .then(function (mRes) {
+                if (!mRes) return;
+                if (!mRes.success) {
+                    showFatalError('Branch data error: ' + mRes.error);
+                    return;
+                }
+                masterRows = mRes.data;
+                populateStates();
+                setLoaderStatus('Ready!');
+                setTimeout(hideLoader, 400);
+                updateProgress();
+            })
+            .catch(function (err) { showFatalError(err.message || String(err)); });
+    }
+
+    // ── Backend Bridge (Apps Script + GitHub Pages PWA) ────────────
+    function isAppsScriptHost() {
+        return typeof google !== 'undefined' && google.script && google.script.run;
+    }
+
+    function getWebAppUrl() {
+        var meta = document.querySelector('meta[name="apps-script-web-app-url"]');
+        return (window.APPS_SCRIPT_WEB_APP_URL || (meta && meta.content) || '').trim();
+    }
+
+    function callBackend(action, payload) {
+        if (isAppsScriptHost()) {
+            return new Promise(function (resolve, reject) {
+                google.script.run
+                    .withSuccessHandler(resolve)
+                    .withFailureHandler(reject)[action](payload);
+            });
+        }
+
+        var webAppUrl = getWebAppUrl();
+        if (!webAppUrl) {
+            return Promise.reject(new Error('GitHub Pages setup needed: add your deployed Apps Script Web App URL to the apps-script-web-app-url meta tag.'));
+        }
+
+        if (action === 'submitApplication') {
+            return fetch(webAppUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action: action, payload: payload })
+            }).then(readJsonResponse);
+        }
+
+        var url = webAppUrl + (webAppUrl.indexOf('?') === -1 ? '?' : '&') + 'api=' + encodeURIComponent(action);
+        return fetch(url, { cache: 'no-store' }).then(readJsonResponse);
+    }
+
+    function readJsonResponse(response) {
+        if (!response.ok) throw new Error('Server returned HTTP ' + response.status);
+        return response.json();
+    }
+
+    function setLoaderStatus(msg) {
+        document.getElementById('loader-status').textContent = msg;
+    }
+
+    function hideLoader() {
+        document.getElementById('loading-overlay').classList.add('hide');
+    }
+
+    function showFatalError(msg) {
+        document.getElementById('loader-status').textContent = '⚠️ ' + msg;
+    }
+
+    // ── Branch Cascade ─────────────────────────────────────────────
+    // All filtering is done client-side on in-memory masterRows.
+    // No repeated server calls.
+
+    function unique(arr) {
+        return arr.filter(function (v, i, a) { return v && a.indexOf(v) === i; }).sort();
+    }
+
+    function populateStates() {
+        var states = unique(masterRows.map(function (r) { return r[0]; }));
+        var sel = document.getElementById('state');
+        sel.innerHTML = '<option value="">— Select State —</option>';
+        states.forEach(function (s) {
+            var o = document.createElement('option');
+            o.value = o.textContent = s;
+            sel.appendChild(o);
+        });
+    }
+
+    function onStateChange() {
+        var state = document.getElementById('state').value;
+        clearError('state');
+        // Reset zone
+        var zoneSel = document.getElementById('zone');
+        zoneSel.innerHTML = '<option value="">— Select Zone —</option>';
+        zoneSel.disabled = !state;
+        document.getElementById('branch').innerHTML = '<option value="">— Select Branch —</option>';
+        document.getElementById('branch').disabled = true;
+        document.getElementById('branchCode').value = '';
+
+        if (!state) return;
+        var zones = unique(
+            masterRows.filter(function (r) { return r[0] === state; }).map(function (r) { return r[1]; })
+        );
+        zones.forEach(function (z) {
+            var o = document.createElement('option');
+            o.value = o.textContent = z;
+            zoneSel.appendChild(o);
+        });
+        updateProgress();
+    }
+
+    function onZoneChange() {
+        var state = document.getElementById('state').value;
+        var zone = document.getElementById('zone').value;
+        clearError('zone');
+        var brSel = document.getElementById('branch');
+        brSel.innerHTML = '<option value="">— Select Branch —</option>';
+        brSel.disabled = !zone;
+        document.getElementById('branchCode').value = '';
+
+        if (!zone) return;
+        var branches = masterRows.filter(function (r) { return r[0] === state && r[1] === zone; });
+        // Sort by branch name
+        branches.sort(function (a, b) { return a[3].localeCompare(b[3]); });
+        branches.forEach(function (b) {
+            var o = document.createElement('option');
+            o.value = b[3];
+            o.textContent = b[3];
+            o.dataset.code = b[2]; // BRNCH_ID
+            brSel.appendChild(o);
+        });
+        updateProgress();
+    }
+
+    function onBranchChange() {
+        var sel = document.getElementById('branch');
+        clearError('branch');
+        var opt = sel.options[sel.selectedIndex];
+        document.getElementById('branchCode').value = (opt && opt.dataset.code) ? opt.dataset.code : '';
+        updateProgress();
+    }
+
+    // ── Toggle Buttons ─────────────────────────────────────────────
+    function selectToggle(groupId, value) {
+        var group = document.getElementById(groupId);
+        var buttons = group.querySelectorAll('.toggle-btn');
+        buttons.forEach(function (b) {
+            b.classList.toggle('active', b.textContent.trim() === value);
+        });
+        // Hidden input id = groupId minus '-group'
+        var inputId = groupId.replace('-group', '');
+        document.getElementById(inputId).value = value;
+        updateProgress();
+    }
+
+    // ── IIBF Toggle Logic ──────────────────────────────────────────
+    function onIIBFChange(value) {
+        selectToggle('iibfCertified-group', value);
+        var show = (value === 'Yes');
+        document.getElementById('iibf-cert-wrap').style.display = show ? '' : 'none';
+        document.getElementById('iibf-date-wrap').style.display = show ? '' : 'none';
+        if (!show) {
+            document.getElementById('iibfCertificate').value = '';
+            document.getElementById('certificateDate').value = '';
+            clearError('iibfCertificate');
+        }
+    }
+
+    // ── Progress Bar ───────────────────────────────────────────────
+    function updateProgress() {
+        var fields = ['state', 'zone', 'branch', 'cspName', 'fathersName', 'contactNumber'];
+        var filled = fields.filter(function (id) { return document.getElementById(id) && document.getElementById(id).value.trim(); }).length;
+        var pct = Math.round((filled / fields.length) * 100);
+        document.getElementById('progress-bar').style.width = pct + '%';
+    }
+
+    // Listen to input changes for progress
+    document.addEventListener('input', updateProgress);
+    document.addEventListener('change', updateProgress);
+
+    // ── Validation ─────────────────────────────────────────────────
+    function showError(id, show) {
+        var el = document.getElementById('err-' + id);
+        var input = document.getElementById(id);
+        if (el) el.classList.toggle('show', show);
+        if (input) input.classList.toggle('error', show);
+    }
+    function clearError(id) { showError(id, false); }
+
+    function validateForm() {
+        var valid = true;
+
+        // Required fields
+        var required = [
+            { id: 'state', msg: null },
+            { id: 'zone', msg: null },
+            { id: 'branch', msg: null },
+            { id: 'cspName', msg: null },
+            { id: 'fathersName', msg: null },
+            { id: 'contactNumber', msg: null }
+        ];
+        required.forEach(function (f) {
+            var val = document.getElementById(f.id).value.trim();
+            if (!val) { showError(f.id, true); valid = false; }
+            else { clearError(f.id); }
+        });
+
+        // Contact: 10 digits
+        var contact = document.getElementById('contactNumber').value.trim();
+        if (contact && !/^\d{10}$/.test(contact)) { showError('contactNumber', true); valid = false; }
+
+        // Alt contact: 10 digits if provided
+        var alt = document.getElementById('altContactNo').value.trim();
+        if (alt && !/^\d{10}$/.test(alt)) { showError('altContactNo', true); valid = false; }
+        else clearError('altContactNo');
+
+        // Aadhaar: 12 digits if provided
+        var aadh = document.getElementById('aadhaarNo').value.trim();
+        if (aadh && !/^\d{12}$/.test(aadh)) { showError('aadhaarNo', true); valid = false; }
+        else clearError('aadhaarNo');
+
+        // PAN: ABCDE1234F format if provided
+        var pan = document.getElementById('panNo').value.trim().toUpperCase();
+        if (pan && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(pan)) { showError('panNo', true); valid = false; }
+        else clearError('panNo');
+
+        // Pin code: 6 digits if provided
+        var pin = document.getElementById('pinCode').value.trim();
+        if (pin && !/^\d{6}$/.test(pin)) { showError('pinCode', true); valid = false; }
+        else clearError('pinCode');
+
+        // Email if provided
+        var email = document.getElementById('mailId').value.trim();
+        if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showError('mailId', true); valid = false; }
+        else clearError('mailId');
+
+        // IIBF certificate number if certified = Yes
+        var iibfCert = document.getElementById('iibfCertified').value;
+        if (iibfCert === 'Yes') {
+            var certNo = document.getElementById('iibfCertificate').value.trim();
+            if (!certNo) { showError('iibfCertificate', true); valid = false; }
+            else clearError('iibfCertificate');
+        }
+
+        // Scroll to first error
+        if (!valid) {
+            var firstErr = document.querySelector('.field-error.show');
+            if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        return valid;
+    }
+
+    // ── Collect Form Data ──────────────────────────────────────────
+    // All text fields are uppercased before submission.
+    // Account numbers are stored as strings to preserve leading zeros.
+    function u(id) { return document.getElementById(id).value.trim().toUpperCase(); }
+    function v(id) { return document.getElementById(id).value.trim(); }   // raw (no case change)
+
+    function collectFormData() {
+        return {
+            state:               u('state'),
+            zone:                u('zone'),
+            district:            u('district'),
+            block:               u('block'),
+            branch:              u('branch'),
+            branchCode:          u('branchCode'),
+            villageName:         u('villageName'),
+            villageCode:         v('villageCode'),          // numeric code — keep as-is
+            cspName:             u('cspName'),
+            fathersName:         u('fathersName'),
+            contactNumber:       v('contactNumber'),        // digits only
+            altContactNo:        v('altContactNo'),         // digits only
+            dob:                 document.getElementById('dob').value,
+            gender:              document.getElementById('gender').value,
+            address:             u('address'),
+            pinCode:             v('pinCode'),              // digits only
+            caste:               document.getElementById('caste').value,
+            aadhaarNo:           v('aadhaarNo'),            // digits only
+            panNo:               u('panNo'),
+            otherIdType:         document.getElementById('otherIdType').value,
+            otherIdNo:           u('otherIdNo'),
+            agentCifNo:          v('agentCifNo'),           // digits — preserve leading zeros as string
+            // Account numbers passed as plain strings; backend stores as text to preserve leading zeros
+            settlementAccount:   v('settlementAccount'),
+            savingAccount:       v('savingAccount'),
+            education:           document.getElementById('education').value,
+            doj:                 document.getElementById('doj').value,
+            uploadPurpose:       u('uploadPurpose'),
+            shgMember:           document.getElementById('shgMember').value,
+            physicallyChallenged: document.getElementById('physicallyChallenged').value,
+            networkProvider:     document.getElementById('networkProvider').value,
+            mailId:              v('mailId').toLowerCase(),  // email stays lowercase
+            bankMitraActivity:   u('bankMitraActivity'),
+            replacedAgent:       u('replacedAgent'),
+            iibfCertified:       document.getElementById('iibfCertified').value,
+            iibfCertificate:     u('iibfCertificate'),
+            certificateDate:     document.getElementById('certificateDate').value
+        };
+    }
+
+    // ── Submit Handler ─────────────────────────────────────────────
+    function handleSubmit() {
+        if (submitBlocked) return;
+        if (!validateForm()) return;
+
+        submitBlocked = true;
+        var btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        btn.classList.add('loading');
+
+        var formData = collectFormData();
+
+        callBackend('submitApplication', formData)
+            .then(function (res) {
+                btn.disabled = false;
+                btn.classList.remove('loading');
+                submitBlocked = false;
+                if (res.success) {
+                    showSuccessScreen(res.referenceId, res.submissionDateTime);
+                } else {
+                    showErrorScreen(res.error || 'Unknown error from server.');
+                }
+            })
+            .catch(function (err) {
+                btn.disabled = false;
+                btn.classList.remove('loading');
+                submitBlocked = false;
+                showErrorScreen(err.message || 'Connection failed. Please try again.');
+            });
+    }
+
+    // ── Success Screen ─────────────────────────────────────────────
+    function showSuccessScreen(refId, subTime) {
+        document.getElementById('s-refId').textContent = refId;
+        document.getElementById('s-refTime').textContent = '🕐 ' + subTime;
+        document.getElementById('success-screen').classList.add('show');
+        window.scrollTo(0, 0);
+    }
+
+    // ── Error Screen ───────────────────────────────────────────────
+    function showErrorScreen(msg) {
+        document.getElementById('e-msg').textContent = msg;
+        document.getElementById('error-screen').classList.add('show');
+        window.scrollTo(0, 0);
+    }
+
+    function hideErrorScreen() {
+        document.getElementById('error-screen').classList.remove('show');
+    }
+
+    function retrySubmit() {
+        hideErrorScreen();
+        handleSubmit();
+    }
+
+    // ── Reset Form ─────────────────────────────────────────────────
+    function resetForm() {
+        // Hide screens
+        document.getElementById('success-screen').classList.remove('show');
+        document.getElementById('error-screen').classList.remove('show');
+
+        // Reset all inputs
+        var inputs = document.querySelectorAll('input:not(.locked), select:not([id="state"]), textarea');
+        inputs.forEach(function (el) {
+            if (el.type === 'hidden') el.value = '';
+            else el.value = '';
+        });
+
+        // Reset state dropdown — keeps branch data loaded
+        document.getElementById('state').value = '';
+        document.getElementById('zone').innerHTML = '<option value="">— Select Zone —</option>';
+        document.getElementById('zone').disabled = true;
+        document.getElementById('branch').innerHTML = '<option value="">— Select Branch —</option>';
+        document.getElementById('branch').disabled = true;
+        document.getElementById('branchCode').value = '';
+
+        // Reset toggles
+        document.querySelectorAll('.toggle-btn').forEach(function (b) { b.classList.remove('active'); });
+
+        // Hide IIBF cert fields
+        document.getElementById('iibf-cert-wrap').style.display = 'none';
+        document.getElementById('iibf-date-wrap').style.display = 'none';
+
+        // Clear all errors
+        document.querySelectorAll('.field-error.show').forEach(function (e) { e.classList.remove('show'); });
+        document.querySelectorAll('.error').forEach(function (e) { e.classList.remove('error'); });
+
+        // Reset progress
+        updateProgress();
+
+        // Scroll to top
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+</script>
 </body>
 </html>
