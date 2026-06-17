@@ -1151,21 +1151,45 @@
             return Promise.reject(new Error('GitHub Pages setup needed: add your deployed Apps Script Web App URL to the apps-script-web-app-url meta tag.'));
         }
 
-        if (action === 'submitApplication') {
-            return fetch(webAppUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({ action: action, payload: payload })
-            }).then(readJsonResponse);
-        }
-
-        var url = webAppUrl + (webAppUrl.indexOf('?') === -1 ? '?' : '&') + 'api=' + encodeURIComponent(action);
-        return fetch(url, { cache: 'no-store' }).then(readJsonResponse);
+        return callBackendJsonp(webAppUrl, action, payload);
     }
 
-    function readJsonResponse(response) {
-        if (!response.ok) throw new Error('Server returned HTTP ' + response.status);
-        return response.json();
+    function callBackendJsonp(webAppUrl, action, payload) {
+        return new Promise(function (resolve, reject) {
+            var callbackName = '__bcAppointmentCallback_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
+            var separator = webAppUrl.indexOf('?') === -1 ? '?' : '&';
+            var src = webAppUrl + separator + 'api=' + encodeURIComponent(action) +
+                '&callback=' + encodeURIComponent(callbackName) +
+                '&_=' + Date.now();
+
+            if (payload !== undefined && payload !== null) {
+                src += '&payload=' + encodeURIComponent(JSON.stringify(payload));
+            }
+
+            var script = document.createElement('script');
+            var timeoutId = window.setTimeout(function () {
+                cleanup();
+                reject(new Error('Apps Script request timed out. Please try again.'));
+            }, 30000);
+
+            function cleanup() {
+                window.clearTimeout(timeoutId);
+                if (script.parentNode) script.parentNode.removeChild(script);
+                try { delete window[callbackName]; } catch (e) { window[callbackName] = undefined; }
+            }
+
+            window[callbackName] = function (data) {
+                cleanup();
+                resolve(data);
+            };
+
+            script.onerror = function () {
+                cleanup();
+                reject(new Error('Unable to connect to Apps Script. Please check the deployment URL.'));
+            };
+            script.src = src;
+            document.head.appendChild(script);
+        });
     }
 
     function setLoaderStatus(msg) {
