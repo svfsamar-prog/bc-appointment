@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#185FA5">
@@ -43,12 +46,12 @@
     }
 
     :root {
-        --primary: #185FA5;
-        --primary-dark: #0f4070;
-        --primary-light: #e8f0fb;
+        --primary: #007aff;
+        --primary-dark: #0062cc;
+        --primary-light: #e5f1ff;
         --secondary: #0D9488;
         --secondary-light: #e6f7f5;
-        --bg: #F8FAFC;
+        --bg: #f2f2f7;
         --card: #FFFFFF;
         --text: #1e293b;
         --text-muted: #64748b;
@@ -59,9 +62,9 @@
         --success: #059669;
         --success-light: #ECFDF5;
         --warning: #D97706;
-        --radius: 10px;
-        --shadow: 0 2px 12px rgba(24, 95, 165, 0.10);
-        --shadow-lg: 0 8px 32px rgba(24, 95, 165, 0.16);
+        --radius: 16px;
+        --shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+        --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.08);
         --transition: 0.2s ease;
         --min-touch: 48px;
     }
@@ -71,7 +74,7 @@
     }
 
     body {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         background: var(--bg);
         color: var(--text);
         font-size: 15px;
@@ -156,9 +159,11 @@
         position: sticky;
         top: 0;
         z-index: 100;
-        background: var(--primary);
-        padding: 10px 16px;
-        box-shadow: 0 2px 10px rgba(24, 95, 165, 0.25);
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        padding: 12px 16px;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
     }
 
     .header-inner {
@@ -184,7 +189,7 @@
     }
 
     .header-title {
-        color: #fff;
+        color: var(--text);
         font-size: 14px;
         font-weight: 700;
         text-align: center;
@@ -204,7 +209,7 @@
 
     /* ── Progress Bar ────────────────────────────────────── */
     #progress-bar-wrap {
-        background: rgba(255, 255, 255, 0.2);
+        background: rgba(0, 0, 0, 0.05);
         height: 4px;
         position: sticky;
         top: 62px;
@@ -213,7 +218,7 @@
 
     #progress-bar {
         height: 4px;
-        background: #fff;
+        background: var(--primary);
         width: 0%;
         transition: width 0.4s ease;
         border-radius: 0 2px 2px 0;
@@ -648,6 +653,116 @@
         margin-top: 4px;
         letter-spacing: 0.04em;
     }
+
+    /* ── App UI Overhaul ─────────────────────────────────── */
+    .step-container {
+        display: none;
+        animation: slideInRight 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+    }
+    .step-container.active { display: block; }
+    .step-container.slide-out-left {
+        animation: slideOutLeft 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+    }
+
+    @keyframes slideInRight {
+        from { transform: translateX(30px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOutLeft {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(-30px); opacity: 0; }
+    }
+
+    /* Modern Top Labels */
+    .form-group {
+        margin-bottom: 20px;
+        display: flex;
+        flex-direction: column;
+    }
+    .form-group label {
+        font-size: 13px;
+        color: var(--text-muted);
+        font-weight: 600;
+        margin-bottom: 6px;
+        text-transform: none;
+    }
+    
+    input, select, textarea {
+        padding: 16px 18px;
+        border: none;
+        border-radius: 14px;
+        background: #e9eaec;
+        font-size: 16px;
+        font-weight: 500;
+        transition: background-color 0.2s, box-shadow 0.2s;
+        box-shadow: inset 0 0 0 1px transparent;
+    }
+    input:focus, select:focus, textarea:focus {
+        background: #fff;
+        outline: none;
+        box-shadow: inset 0 0 0 2px var(--primary);
+    }
+
+
+    /* Bottom App Bar */
+    .bottom-app-bar {
+        position: fixed;
+        bottom: 0; left: 0; right: 0;
+        background: rgba(255,255,255,0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-top: 1px solid rgba(0,0,0,0.05);
+        padding: 12px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 100;
+        box-shadow: 0 -4px 20px rgba(0,0,0,0.05);
+    }
+    .bottom-app-bar button {
+        border-radius: 20px;
+        padding: 12px 24px;
+        font-weight: 700;
+        font-size: 15px;
+        cursor: pointer;
+        transition: 0.2s;
+        border: none;
+    }
+    .btn-back { background: #f1f5f9; color: #475569; }
+    .btn-back:active { background: #e2e8f0; }
+    .btn-next {
+        background: var(--primary);
+        color: #fff;
+        display: flex; align-items: center; gap: 8px;
+    }
+    .btn-next:active { background: var(--primary-dark); }
+    .btn-next.loading .btn-text { opacity: 0; }
+    .btn-next.loading .btn-spinner { display: block; position: absolute; left: 50%; transform: translateX(-50%); }
+    .btn-spinner {
+        display: none; width: 18px; height: 18px;
+        border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff;
+        border-radius: 50%; animation: spin 0.8s linear infinite;
+    }
+    body { padding-bottom: 90px; } 
+    .step-indicator {
+        text-align: center; font-size: 12px; font-weight: 600; color: var(--primary);
+    }
+
+
+    /* Edge-to-Edge on Mobile */
+    @media (max-width: 600px) {
+        #main-content {
+            padding: 10px 0;
+        }
+        .section-card {
+            border-radius: 0;
+            box-shadow: none;
+            border-top: 1px solid rgba(0,0,0,0.05);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            margin-bottom: 16px;
+        }
+    }
+
 </style>
 </head>
 <body>
@@ -685,6 +800,7 @@
 <div id="main-content">
 
     <!-- SECTION 1 – AUTO FILLED -->
+    <div class="step-container active" id="step-1">
     <div class="section-card">
         <div class="section-header">
             <span class="section-icon">🏢</span>
@@ -707,6 +823,9 @@
     </div>
 
     <!-- SECTION 2 – LOCATION DETAILS -->
+    
+</div><!-- end step-container -->
+<div class="step-container" id="step-2">
     <div class="section-card">
         <div class="section-header">
             <span class="section-icon">📍</span>
@@ -777,6 +896,9 @@
     </div>
 
     <!-- SECTION 3 – PERSONAL DETAILS -->
+    
+</div><!-- end step-container -->
+<div class="step-container" id="step-3">
     <div class="section-card">
         <div class="section-header">
             <span class="section-icon">👤</span>
@@ -861,6 +983,9 @@
     </div>
 
     <!-- SECTION 4 – KYC DETAILS -->
+    
+</div><!-- end step-container -->
+<div class="step-container" id="step-4">
     <div class="section-card">
         <div class="section-header">
             <span class="section-icon">🪪</span>
@@ -912,6 +1037,9 @@
     </div>
 
     <!-- SECTION 5 – BANK DETAILS -->
+    
+</div><!-- end step-container -->
+<div class="step-container" id="step-5">
     <div class="section-card">
         <div class="section-header">
             <span class="section-icon">🏦</span>
@@ -939,6 +1067,9 @@
     </div>
 
     <!-- SECTION 6 – PROFESSIONAL DETAILS -->
+    
+</div><!-- end step-container -->
+<div class="step-container" id="step-6">
     <div class="section-card">
         <div class="section-header">
             <span class="section-icon">💼</span>
@@ -1038,6 +1169,9 @@
     </div>
 
     <!-- SECTION 7 – IIBF DETAILS -->
+    
+</div><!-- end step-container -->
+<div class="step-container" id="step-7">
     <div class="section-card">
         <div class="section-header">
             <span class="section-icon">📜</span>
@@ -1076,12 +1210,17 @@
 </div><!-- /main-content -->
 
 <!-- ── Submit Button ─────────────────────────────────────────── -->
-<div class="submit-wrap">
-    <button type="button" class="btn-submit" id="submitBtn" onclick="handleSubmit()">
-        <div class="btn-spinner"></div>
-        <span class="btn-text">📤 Submit Application</span>
-    </button>
-</div>
+
+        <div class="bottom-app-bar">
+            <button type="button" class="btn-back" id="btn-back" onclick="prevStep()">Back</button>
+            <div class="step-indicator" id="step-indicator">Step 1 of 7</div>
+            <button type="button" class="btn-next" id="submitBtn" onclick="nextStep()">
+                <div class="btn-spinner"></div>
+                <span class="btn-text" id="btn-next-text">Next</span>
+            </button>
+        </div>
+
+
 
 <!-- ── Success Screen ─────────────────────────────────────────── -->
 <div class="screen-overlay" id="success-screen">
@@ -1354,11 +1493,12 @@
     }
     function clearError(id) { showError(id, false); }
 
-    function validateForm() {
-        var valid = true;
-
-        // Required fields
-        var required = [
+    
+    // ── App Step Logic ──────────────────────────────────────────
+    var currentStep = 1;
+    var totalSteps = 7;
+    
+    var required = [
             { id: 'state', msg: null },
             { id: 'zone', msg: null },
             { id: 'branch', msg: null },
@@ -1393,6 +1533,118 @@
             { id: 'replacedAgent', msg: null },
             { id: 'altContactNo', msg: null }
         ];
+
+    function updateAppUI() {
+        var indicator = document.getElementById('step-indicator');
+        if (indicator) indicator.innerText = 'Step ' + currentStep + ' of ' + totalSteps;
+        
+        var btnBack = document.getElementById('btn-back');
+        if (btnBack) btnBack.style.visibility = currentStep === 1 ? 'hidden' : 'visible';
+        
+        var btnNextText = document.getElementById('btn-next-text');
+        if (btnNextText) btnNextText.innerText = currentStep === totalSteps ? 'Submit Application' : 'Next';
+        
+        var pb = document.getElementById('progress-bar');
+        if (pb) pb.style.width = ((currentStep / totalSteps) * 100) + '%';
+        
+        window.scrollTo(0, 0);
+    }
+
+    function nextStep() {
+        if (currentStep === totalSteps) {
+            handleSubmit();
+            return;
+        }
+
+        var stepEl = document.getElementById('step-' + currentStep);
+        if (!validateStep(stepEl)) return;
+
+        stepEl.classList.add('slide-out-left');
+        setTimeout(function() {
+            stepEl.classList.remove('active', 'slide-out-left');
+            currentStep++;
+            var nextEl = document.getElementById('step-' + currentStep);
+            if (nextEl) nextEl.classList.add('active');
+            updateAppUI();
+        }, 200);
+    }
+
+    function prevStep() {
+        if (currentStep <= 1) return;
+        var stepEl = document.getElementById('step-' + currentStep);
+        stepEl.classList.remove('active');
+        currentStep--;
+        var prevEl = document.getElementById('step-' + currentStep);
+        if (prevEl) prevEl.classList.add('active');
+        updateAppUI();
+    }
+
+    function validateStep(stepElement) {
+        var valid = true;
+        
+        var reqList = required.filter(function(f) {
+            var el = document.getElementById(f.id);
+            return el && stepElement.contains(el);
+        });
+
+        reqList.forEach(function(f) {
+            var el = document.getElementById(f.id);
+            if (el) {
+                var val = el.value.trim();
+                if (!val) { showError(f.id, true); valid = false; }
+                else { clearError(f.id); }
+            }
+        });
+
+        var cnumEl = document.getElementById('contactNumber');
+        if (cnumEl && stepElement.contains(cnumEl)) {
+            var cnum = cnumEl.value.trim();
+            if (cnum && !/^\d{10}$/.test(cnum)) { showError('contactNumber', true); valid = false; }
+        }
+
+        var adhEl = document.getElementById('aadhaarNo');
+        if (adhEl && stepElement.contains(adhEl)) {
+            var adh = adhEl.value.trim();
+            if (adh && !/^\d{12}$/.test(adh)) { showError('aadhaarNo', true); valid = false; }
+        }
+
+        var mailEl = document.getElementById('mailId');
+        if (mailEl && stepElement.contains(mailEl)) {
+            var mail = mailEl.value.trim();
+            if (mail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) { showError('mailId', true); valid = false; }
+        }
+        
+        var iibfCertEl = document.getElementById('iibfCertified');
+        if (iibfCertEl && stepElement.contains(iibfCertEl)) {
+            var iibfCert = iibfCertEl.value;
+            if (!iibfCert) { showError('iibfCertified', true); valid = false; }
+            else { clearError('iibfCertified'); }
+            
+            if (iibfCert === 'Yes') {
+                var certNoEl = document.getElementById('iibfCertificate');
+                var cDateEl = document.getElementById('certificateDate');
+                if (certNoEl && stepElement.contains(certNoEl)) {
+                    var certNo = certNoEl.value.trim();
+                    if (!certNo) { showError('iibfCertificate', true); valid = false; }
+                    else clearError('iibfCertificate');
+                }
+                if (cDateEl && stepElement.contains(cDateEl)) {
+                    var cDate = cDateEl.value.trim();
+                    if (!cDate) { showError('certificateDate', true); valid = false; }
+                    else clearError('certificateDate');
+                }
+            }
+        }
+
+        return valid;
+    }
+
+
+    function validateForm() {
+        var valid = true;
+
+        // Required fields
+        // required array moved to global
         required.forEach(function (f) {
             var val = document.getElementById(f.id).value.trim();
             if (!val) { showError(f.id, true); valid = false; }
@@ -1597,9 +1849,22 @@
         // Reset progress
         updateProgress();
 
+        // Reset step navigation
+        if (typeof currentStep !== 'undefined') {
+            document.querySelectorAll('.step-container').forEach(function(el) {
+                el.classList.remove('active', 'slide-out-left');
+            });
+            currentStep = 1;
+            var firstStep = document.getElementById('step-1');
+            if (firstStep) firstStep.classList.add('active');
+            updateAppUI();
+        }
+
         // Scroll to top
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 </script>
 </body>
 </html>
+
+</div><!-- end step-container -->
