@@ -12,6 +12,7 @@
   <meta name="apps-script-web-app-url" content="https://script.google.com/macros/s/AKfycbxYObNNRCYpzYsYGpzTSDd3nv4VfhI5d2WWcKfIAX-yJzBnlgwXOIXKVqfaWbelL2UZ/exec">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon-192.png">
   <script>
     if ('serviceWorker' in navigator && location.protocol !== 'file:') {
       window.addEventListener('load', function () {
@@ -22,7 +23,7 @@
             if (!worker) return;
             worker.addEventListener('statechange', function () {
               if (worker.state === 'installed' && navigator.serviceWorker.controller) {
-                window.location.reload();
+                console.log('New update available. It will be used on next reload.');
               }
             });
           });
@@ -739,32 +740,37 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Branch Code</label>
+                    <label>Branch Code <span class="required-mark">*</span></label>
                     <input type="text" id="branchCode" class="locked" readonly
                         placeholder="Auto-filled on branch selection">
+                    <span class="field-error" id="err-branchCode">This field is required.</span>
                     <span class="locked-badge">AUTO FILLED</span>
                 </div>
 
                 <div class="form-group">
-                    <label>District</label>
+                    <label>District <span class="required-mark">*</span></label>
                     <input type="text" id="district" placeholder="Enter district name" autocomplete="off">
-                </div>
+                <span class="field-error" id="err-district">This field is required.</span>
+                    </div>
 
                 <div class="form-group">
-                    <label>Block</label>
+                    <label>Block <span class="required-mark">*</span></label>
                     <input type="text" id="block" placeholder="Enter block name" autocomplete="off">
-                </div>
+                <span class="field-error" id="err-block">This field is required.</span>
+                    </div>
 
                 <div class="form-group">
-                    <label>Village Name</label>
+                    <label>Village Name <span class="required-mark">*</span></label>
                     <input type="text" id="villageName" placeholder="Enter village name" autocomplete="off">
-                </div>
+                <span class="field-error" id="err-villageName">This field is required.</span>
+                    </div>
 
                 <div class="form-group">
-                    <label>Village Code</label>
+                    <label>Village Code <span class="required-mark">*</span></label>
                     <input type="text" id="villageCode" placeholder="Enter village code" autocomplete="off"
                         inputmode="numeric">
-                </div>
+                <span class="field-error" id="err-villageCode">This field is required.</span>
+                    </div>
 
             </div>
         </div>
@@ -799,19 +805,20 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Alternate Contact Number</label>
+                    <label>Alternate Contact Number <span class="required-mark">*</span></label>
                     <input type="tel" id="altContactNo" placeholder="10-digit alternate number" maxlength="10"
                         inputmode="numeric" autocomplete="off">
                     <span class="field-error" id="err-altContactNo">Enter a valid 10-digit number.</span>
                 </div>
 
                 <div class="form-group">
-                    <label>Date of Birth</label>
+                    <label>Date of Birth <span class="required-mark">*</span></label>
                     <input type="date" id="dob" max="">
-                </div>
+                <span class="field-error" id="err-dob">This field is required.</span>
+                    </div>
 
                 <div class="form-group">
-                    <label>Gender</label>
+                    <label>Gender <span class="required-mark">*</span></label>
                     <div class="toggle-group" id="gender-group">
                         <button type="button" class="toggle-btn"
                             onclick="selectToggle('gender-group','Male')">Male</button>
@@ -820,23 +827,25 @@
                         <button type="button" class="toggle-btn"
                             onclick="selectToggle('gender-group','Other')">Other</button>
                     </div>
+                    <span class="field-error" id="err-gender">This field is required.</span>
                     <input type="hidden" id="gender" value="">
                 </div>
 
                 <div class="form-group col-full">
-                    <label>Address</label>
+                    <label>Address <span class="required-mark">*</span></label>
                     <textarea id="address" rows="2" placeholder="Full residential address"></textarea>
-                </div>
+                <span class="field-error" id="err-address">This field is required.</span>
+                    </div>
 
                 <div class="form-group">
-                    <label>Pin Code</label>
+                    <label>Pin Code <span class="required-mark">*</span></label>
                     <input type="text" id="pinCode" placeholder="6-digit PIN code" maxlength="6" inputmode="numeric"
                         autocomplete="off">
                     <span class="field-error" id="err-pinCode">Enter a valid 6-digit PIN code.</span>
                 </div>
 
                 <div class="form-group">
-                    <label>Caste</label>
+                    <label>Caste <span class="required-mark">*</span></label>
                     <select id="caste">
                         <option value="">— Select Caste —</option>
                         <option>General</option>
@@ -844,7 +853,8 @@
                         <option>SC</option>
                         <option>ST</option>
                     </select>
-                </div>
+                <span class="field-error" id="err-caste">This field is required.</span>
+                    </div>
 
             </div>
         </div>
@@ -860,21 +870,21 @@
             <div class="form-grid">
 
                 <div class="form-group">
-                    <label>Aadhaar Number</label>
+                    <label>Aadhaar Number <span class="required-mark">*</span></label>
                     <input type="text" id="aadhaarNo" placeholder="12-digit Aadhaar number" maxlength="12"
                         inputmode="numeric" autocomplete="off">
                     <span class="field-error" id="err-aadhaarNo">Enter a valid 12-digit Aadhaar number.</span>
                 </div>
 
                 <div class="form-group">
-                    <label>PAN Number</label>
+                    <label>PAN Number <span class="required-mark">*</span></label>
                     <input type="text" id="panNo" placeholder="e.g. ABCDE1234F" maxlength="10"
                         style="text-transform:uppercase" autocomplete="off">
                     <span class="field-error" id="err-panNo">Enter a valid PAN (e.g. ABCDE1234F).</span>
                 </div>
 
                 <div class="form-group">
-                    <label>Other ID Type</label>
+                    <label>Other ID Type <span class="required-mark">*</span></label>
                     <select id="otherIdType">
                         <option value="">— Select ID Type —</option>
                         <option>Voter ID</option>
@@ -882,17 +892,20 @@
                         <option>Passport</option>
                         <option>Ration Card</option>
                     </select>
-                </div>
+                <span class="field-error" id="err-otherIdType">This field is required.</span>
+                    </div>
 
                 <div class="form-group">
-                    <label>Other ID Number</label>
+                    <label>Other ID Number <span class="required-mark">*</span></label>
                     <input type="text" id="otherIdNo" placeholder="ID document number" autocomplete="off">
-                </div>
+                <span class="field-error" id="err-otherIdNo">This field is required.</span>
+                    </div>
 
                 <div class="form-group">
-                    <label>Agent CIF Number</label>
+                    <label>Agent CIF Number <span class="required-mark">*</span></label>
                     <input type="text" id="agentCifNo" placeholder="CIF number" autocomplete="off" inputmode="numeric">
-                </div>
+                <span class="field-error" id="err-agentCifNo">This field is required.</span>
+                    </div>
 
             </div>
         </div>
@@ -908,16 +921,18 @@
             <div class="form-grid">
 
                 <div class="form-group">
-                    <label>Settlement Account Number</label>
+                    <label>Settlement Account Number <span class="required-mark">*</span></label>
                     <input type="text" id="settlementAccount" placeholder="Settlement account number"
                         inputmode="numeric" autocomplete="off">
-                </div>
+                <span class="field-error" id="err-settlementAccount">This field is required.</span>
+                    </div>
 
                 <div class="form-group">
-                    <label>Saving Account Number</label>
+                    <label>Saving Account Number <span class="required-mark">*</span></label>
                     <input type="text" id="savingAccount" placeholder="Saving account number" inputmode="numeric"
                         autocomplete="off">
-                </div>
+                <span class="field-error" id="err-savingAccount">This field is required.</span>
+                    </div>
 
             </div>
         </div>
@@ -933,7 +948,7 @@
             <div class="form-grid">
 
                 <div class="form-group">
-                    <label>Education</label>
+                    <label>Education <span class="required-mark">*</span></label>
                     <select id="education">
                         <option value="">— Select Education —</option>
                         <option>Intermediate</option>
@@ -941,43 +956,51 @@
                         <option>Post Graduate</option>
                         <option>Other</option>
                     </select>
-                </div>
+                <span class="field-error" id="err-education">This field is required.</span>
+                    </div>
 
                 <div class="form-group">
-                    <label>Date of Joining (DOJ)</label>
+                    <label>Date of Joining (DOJ) <span class="required-mark">*</span></label>
                     <input type="date" id="doj">
-                </div>
+                <span class="field-error" id="err-doj">This field is required.</span>
+                    </div>
 
                 <div class="form-group col-full">
-                    <label>Upload Purpose</label>
-                    <input type="text" id="uploadPurpose" placeholder="Purpose of this application upload"
-                        autocomplete="off">
-                </div>
+                    <label>Upload Purpose <span class="required-mark">*</span></label>
+                    <div class="toggle-group" id="uploadPurpose-group">
+                        <button type="button" class="toggle-btn" onclick="onUploadPurposeChange('NEW')">NEW</button>
+                        <button type="button" class="toggle-btn" onclick="onUploadPurposeChange('REPLACEMENT')">REPLACEMENT</button>
+                    </div>
+                    <input type="hidden" id="uploadPurpose" value="">
+                    <span class="field-error" id="err-uploadPurpose">This field is required.</span>
+                    </div>
 
                 <div class="form-group">
-                    <label>SHG Member</label>
+                    <label>SHG Member <span class="required-mark">*</span></label>
                     <div class="toggle-group" id="shgMember-group">
                         <button type="button" class="toggle-btn"
                             onclick="selectToggle('shgMember-group','Yes')">Yes</button>
                         <button type="button" class="toggle-btn"
                             onclick="selectToggle('shgMember-group','No')">No</button>
                     </div>
+                    <span class="field-error" id="err-shgMember">This field is required.</span>
                     <input type="hidden" id="shgMember" value="">
                 </div>
 
                 <div class="form-group">
-                    <label>Physically Challenged</label>
+                    <label>Physically Challenged <span class="required-mark">*</span></label>
                     <div class="toggle-group" id="physicallyChallenged-group">
                         <button type="button" class="toggle-btn"
                             onclick="selectToggle('physicallyChallenged-group','Yes')">Yes</button>
                         <button type="button" class="toggle-btn"
                             onclick="selectToggle('physicallyChallenged-group','No')">No</button>
                     </div>
+                    <span class="field-error" id="err-physicallyChallenged">This field is required.</span>
                     <input type="hidden" id="physicallyChallenged" value="">
                 </div>
 
                 <div class="form-group">
-                    <label>Network Service Provider</label>
+                    <label>Network Service Provider <span class="required-mark">*</span></label>
                     <select id="networkProvider">
                         <option value="">— Select Provider —</option>
                         <option>Airtel</option>
@@ -986,26 +1009,29 @@
                         <option>Vi</option>
                         <option>Other</option>
                     </select>
-                </div>
+                <span class="field-error" id="err-networkProvider">This field is required.</span>
+                    </div>
 
                 <div class="form-group">
-                    <label>Mail ID</label>
+                    <label>Mail ID <span class="required-mark">*</span></label>
                     <input type="email" id="mailId" placeholder="email@example.com" inputmode="email"
                         autocomplete="off">
                     <span class="field-error" id="err-mailId">Enter a valid email address.</span>
                 </div>
 
                 <div class="form-group col-full">
-                    <label>Bank Mitra Any Other Activity</label>
+                    <label>Bank Mitra Any Other Activity <span class="required-mark">*</span></label>
                     <textarea id="bankMitraActivity" rows="2"
                         placeholder="Describe any other activities the Bank Mitra is involved in"></textarea>
-                </div>
+                <span class="field-error" id="err-bankMitraActivity">This field is required.</span>
+                    </div>
 
                 <div class="form-group col-full">
-                    <label>Replaced Agent Details</label>
+                    <label>Replaced Agent Details <span class="required-mark">*</span></label>
                     <textarea id="replacedAgent" rows="2"
                         placeholder="Details of agent being replaced (if applicable)"></textarea>
-                </div>
+                <span class="field-error" id="err-replacedAgent">This field is required.</span>
+                    </div>
 
             </div>
         </div>
@@ -1021,11 +1047,12 @@
             <div class="form-grid">
 
                 <div class="form-group col-full">
-                    <label>IIBF Certified?</label>
+                    <label>IIBF Certified? <span class="required-mark">*</span></label>
                     <div class="toggle-group" id="iibfCertified-group">
                         <button type="button" class="toggle-btn" onclick="onIIBFChange('Yes')">Yes</button>
                         <button type="button" class="toggle-btn" onclick="onIIBFChange('No')">No</button>
                     </div>
+                    <span class="field-error" id="err-iibfCertified">This field is required.</span>
                     <input type="hidden" id="iibfCertified" value="">
                 </div>
 
@@ -1037,9 +1064,10 @@
                 </div>
 
                 <div class="form-group" id="iibf-date-wrap" style="display:none;">
-                    <label>Certificate Date</label>
+                    <label>Certificate Date <span class="required-mark">*</span></label>
                     <input type="date" id="certificateDate">
-                </div>
+                <span class="field-error" id="err-certificateDate">This field is required.</span>
+                    </div>
 
             </div>
         </div>
@@ -1152,44 +1180,27 @@
             return Promise.reject(new Error('GitHub Pages setup needed: add your deployed Apps Script Web App URL to the apps-script-web-app-url meta tag.'));
         }
 
-        return callBackendJsonp(webAppUrl, action, payload);
+        return callBackendPost(webAppUrl, action, payload);
     }
 
-    function callBackendJsonp(webAppUrl, action, payload) {
-        return new Promise(function (resolve, reject) {
-            var callbackName = '__bcAppointmentCallback_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
-            var separator = webAppUrl.indexOf('?') === -1 ? '?' : '&';
-            var src = webAppUrl + separator + 'api=' + encodeURIComponent(action) +
-                '&callback=' + encodeURIComponent(callbackName) +
-                '&_=' + Date.now();
-
-            if (payload !== undefined && payload !== null) {
-                src += '&payload=' + encodeURIComponent(JSON.stringify(payload));
+    function callBackendPost(webAppUrl, action, payload) {
+        return fetch(webAppUrl, {
+            method: 'POST',
+            redirect: 'follow',
+            headers: {
+                'Content-Type': 'text/plain;charset=utf-8'
+            },
+            body: JSON.stringify({ action: action, payload: payload })
+        })
+        .then(function(response) {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
             }
-
-            var script = document.createElement('script');
-            var timeoutId = window.setTimeout(function () {
-                cleanup();
-                reject(new Error('Apps Script request timed out. Please try again.'));
-            }, 30000);
-
-            function cleanup() {
-                window.clearTimeout(timeoutId);
-                if (script.parentNode) script.parentNode.removeChild(script);
-                try { delete window[callbackName]; } catch (e) { window[callbackName] = undefined; }
-            }
-
-            window[callbackName] = function (data) {
-                cleanup();
-                resolve(data);
-            };
-
-            script.onerror = function () {
-                cleanup();
-                reject(new Error('Unable to connect to Apps Script. Please check the deployment URL.'));
-            };
-            script.src = src;
-            document.head.appendChild(script);
+            return response.json();
+        })
+        .catch(function(error) {
+            console.error('Fetch error:', error);
+            throw new Error('Unable to connect to Apps Script. Please check the deployment URL. ' + error.message);
         });
     }
 
@@ -1304,6 +1315,24 @@
         }
     }
 
+    // ── Upload Purpose Toggle Logic ────────────────────────────────
+    function onUploadPurposeChange(value) {
+        selectToggle('uploadPurpose-group', value);
+        var agentDetails = document.getElementById('replacedAgent');
+        if (value === 'NEW') {
+            agentDetails.value = 'NA';
+            agentDetails.readOnly = true;
+            agentDetails.classList.add('locked');
+            clearError('replacedAgent');
+        } else {
+            if (agentDetails.value === 'NA') {
+                agentDetails.value = '';
+            }
+            agentDetails.readOnly = false;
+            agentDetails.classList.remove('locked');
+        }
+    }
+
     // ── Progress Bar ───────────────────────────────────────────────
     function updateProgress() {
         var fields = ['state', 'zone', 'branch', 'cspName', 'fathersName', 'contactNumber'];
@@ -1335,7 +1364,34 @@
             { id: 'branch', msg: null },
             { id: 'cspName', msg: null },
             { id: 'fathersName', msg: null },
-            { id: 'contactNumber', msg: null }
+            { id: 'contactNumber', msg: null },
+            { id: 'district', msg: null },
+            { id: 'block', msg: null },
+            { id: 'branchCode', msg: null },
+            { id: 'villageName', msg: null },
+            { id: 'villageCode', msg: null },
+            { id: 'dob', msg: null },
+            { id: 'gender', msg: null },
+            { id: 'address', msg: null },
+            { id: 'pinCode', msg: null },
+            { id: 'caste', msg: null },
+            { id: 'aadhaarNo', msg: null },
+            { id: 'panNo', msg: null },
+            { id: 'otherIdType', msg: null },
+            { id: 'otherIdNo', msg: null },
+            { id: 'agentCifNo', msg: null },
+            { id: 'settlementAccount', msg: null },
+            { id: 'savingAccount', msg: null },
+            { id: 'education', msg: null },
+            { id: 'doj', msg: null },
+            { id: 'uploadPurpose', msg: null },
+            { id: 'shgMember', msg: null },
+            { id: 'physicallyChallenged', msg: null },
+            { id: 'networkProvider', msg: null },
+            { id: 'mailId', msg: null },
+            { id: 'bankMitraActivity', msg: null },
+            { id: 'replacedAgent', msg: null },
+            { id: 'altContactNo', msg: null }
         ];
         required.forEach(function (f) {
             var val = document.getElementById(f.id).value.trim();
@@ -1372,12 +1428,19 @@
         if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showError('mailId', true); valid = false; }
         else clearError('mailId');
 
-        // IIBF certificate number if certified = Yes
+        // IIBF certification check
         var iibfCert = document.getElementById('iibfCertified').value;
+        if (!iibfCert) { showError('iibfCertified', true); valid = false; }
+        else { clearError('iibfCertified'); }
+        
         if (iibfCert === 'Yes') {
             var certNo = document.getElementById('iibfCertificate').value.trim();
             if (!certNo) { showError('iibfCertificate', true); valid = false; }
             else clearError('iibfCertificate');
+            
+            var cDate = document.getElementById('certificateDate').value.trim();
+            if (!cDate) { showError('certificateDate', true); valid = false; }
+            else clearError('certificateDate');
         }
 
         // Scroll to first error
@@ -1497,6 +1560,13 @@
         // Hide screens
         document.getElementById('success-screen').classList.remove('show');
         document.getElementById('error-screen').classList.remove('show');
+
+        // Unlock replacedAgent if it was locked
+        var agentDetails = document.getElementById('replacedAgent');
+        if (agentDetails) {
+            agentDetails.readOnly = false;
+            agentDetails.classList.remove('locked');
+        }
 
         // Reset all inputs
         var inputs = document.querySelectorAll('input:not(.locked), select:not([id="state"]), textarea');
