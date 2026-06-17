@@ -27,12 +27,45 @@ function getSheet_(name) {
 // ── doGet ────────────────────────────────────────────────────
 
 function doGet(e) {
+  var params = (e && e.parameter) || {};
+  if (params.api) {
+    return handleApiRequest_(params.api, null);
+  }
+
   return HtmlService
-    .createTemplateFromFile('Index')
+    .createTemplateFromFile('index')
     .evaluate()
     .setTitle('BC / BCA Appointment Form – SVF × UCO Bank')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
     .addMetaTag('viewport', 'width=device-width, initial-scale=1.0, maximum-scale=1.0');
+}
+
+function doPost(e) {
+  try {
+    var body = e && e.postData && e.postData.contents
+      ? JSON.parse(e.postData.contents)
+      : {};
+    return handleApiRequest_(body.action, body.payload);
+  } catch (err) {
+    return jsonResponse_({ success: false, error: err.message });
+  }
+}
+
+function handleApiRequest_(action, payload) {
+  try {
+    if (action === 'getSettings') return jsonResponse_(getSettings());
+    if (action === 'getMasterData') return jsonResponse_(getMasterData());
+    if (action === 'submitApplication') return jsonResponse_(submitApplication(payload || {}));
+    return jsonResponse_({ success: false, error: 'Unknown API action: ' + action });
+  } catch (err) {
+    return jsonResponse_({ success: false, error: err.message });
+  }
+}
+
+function jsonResponse_(data) {
+  return ContentService
+    .createTextOutput(JSON.stringify(data))
+    .setMimeType(ContentService.MimeType.JSON);
 }
 
 // ── include() for partials ───────────────────────────────────
