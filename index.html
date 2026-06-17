@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="BC/BCA Form">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apps-script-web-app-url" content="https://script.google.com/macros/s/AKfycbxYObNNRCYpzYsYGpzTSDd3nv4VfhI5d2WWcKfIAX-yJzBnlgwXOIXKVqfaWbelL2UZ/exec">
+  <meta name="apps-script-web-app-url" content="">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <script>
@@ -1084,7 +1084,6 @@
     // ── State ──────────────────────────────────────────────────────
     var masterRows = [];   // [[state, zone, branchId, branch], ...]
     var submitBlocked = false;
-    var DEFAULT_APPS_SCRIPT_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxYObNNRCYpzYsYGpzTSDd3nv4VfhI5d2WWcKfIAX-yJzBnlgwXOIXKVqfaWbelL2UZ/exec';
 
     // ── Init ───────────────────────────────────────────────────────
     window.addEventListener('DOMContentLoaded', function () {
@@ -1133,7 +1132,7 @@
 
     function getWebAppUrl() {
         var meta = document.querySelector('meta[name="apps-script-web-app-url"]');
-        return (window.APPS_SCRIPT_WEB_APP_URL || (meta && meta.content) || DEFAULT_APPS_SCRIPT_WEB_APP_URL || '').trim();
+        return (window.APPS_SCRIPT_WEB_APP_URL || (meta && meta.content) || '').trim();
     }
 
     function callBackend(action, payload) {
