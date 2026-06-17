@@ -27,12 +27,66 @@ function getSheet_(name) {
 // ── doGet ────────────────────────────────────────────────────
 
 function doGet(e) {
+  var params = (e && e.parameter) || {};
+  if (params.api) {
+    var payload = null;
+    if (params.payload) {
+      try {
+        payload = JSON.parse(params.payload);
+      } catch (err) {
+        return apiResponse_({ success: false, error: 'Invalid payload JSON: ' + err.message }, params.callback);
+      }
+    }
+    return handleApiRequest_(params.api, payload, params.callback);
+  }
+
   return HtmlService
-    .createTemplateFromFile('Index')
+    .createTemplateFromFile('index')
     .evaluate()
     .setTitle('BC / BCA Appointment Form – SVF × UCO Bank')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
     .addMetaTag('viewport', 'width=device-width, initial-scale=1.0, maximum-scale=1.0');
+}
+
+function doPost(e) {
+  try {
+    var body = e && e.postData && e.postData.contents
+      ? JSON.parse(e.postData.contents)
+      : {};
+    return handleApiRequest_(body.action, body.payload, null);
+  } catch (err) {
+    return jsonResponse_({ success: false, error: err.message });
+  }
+}
+
+function handleApiRequest_(action, payload, callback) {
+  try {
+    if (action === 'getSettings') return apiResponse_(getSettings(), callback);
+    if (action === 'getMasterData') return apiResponse_(getMasterData(), callback);
+    if (action === 'submitApplication') return apiResponse_(submitApplication(payload || {}), callback);
+    return apiResponse_({ success: false, error: 'Unknown API action: ' + action }, callback);
+  } catch (err) {
+    return apiResponse_({ success: false, error: err.message }, callback);
+  }
+}
+
+function apiResponse_(data, callback) {
+  if (callback) return jsonpResponse_(data, callback);
+  return jsonResponse_(data);
+}
+
+function jsonResponse_(data) {
+  return ContentService
+    .createTextOutput(JSON.stringify(data))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function jsonpResponse_(data, callback) {
+  var safeCallback = String(callback).replace(/[^\w.$]/g, '');
+  if (!safeCallback) safeCallback = 'callback';
+  return ContentService
+    .createTextOutput(safeCallback + '(' + JSON.stringify(data) + ');')
+    .setMimeType(ContentService.MimeType.JAVASCRIPT);
 }
 
 // ── include() for partials ───────────────────────────────────

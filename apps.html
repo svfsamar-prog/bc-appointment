@@ -434,6 +434,7 @@
     // ── State ──────────────────────────────────────────────────────
     var masterRows = [];   // [[state, zone, branchId, branch], ...]
     var submitBlocked = false;
+    var DEFAULT_APPS_SCRIPT_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxYObNNRCYpzYsYGpzTSDd3nv4VfhI5d2WWcKfIAX-yJzBnlgwXOIXKVqfaWbelL2UZ/exec';
 
     // ── Init ───────────────────────────────────────────────────────
     window.addEventListener('DOMContentLoaded', function () {
@@ -451,30 +452,93 @@
     // ── Load Settings + Master Data ────────────────────────────────
     function loadData() {
         setLoaderStatus('Loading settings…');
-        google.script.run
-            .withSuccessHandler(function (res) {
+        callBackend('getSettings')
+            .then(function (res) {
                 if (!res.success) {
                     showFatalError('Settings error: ' + res.error);
                     return;
                 }
                 setLoaderStatus('Loading branch master data…');
-                google.script.run
-                    .withSuccessHandler(function (mRes) {
-                        if (!mRes.success) {
-                            showFatalError('Branch data error: ' + mRes.error);
-                            return;
-                        }
-                        masterRows = mRes.data;
-                        populateStates();
-                        setLoaderStatus('Ready!');
-                        setTimeout(hideLoader, 400);
-                        updateProgress();
-                    })
-                    .withFailureHandler(function (err) { showFatalError(err.message); })
-                    .getMasterData();
+                return callBackend('getMasterData');
             })
-            .withFailureHandler(function (err) { showFatalError(err.message); })
-            .getSettings();
+            .then(function (mRes) {
+                if (!mRes) return;
+                if (!mRes.success) {
+                    showFatalError('Branch data error: ' + mRes.error);
+                    return;
+                }
+                masterRows = mRes.data;
+                populateStates();
+                setLoaderStatus('Ready!');
+                setTimeout(hideLoader, 400);
+                updateProgress();
+            })
+            .catch(function (err) { showFatalError(err.message || String(err)); });
+    }
+
+    // ── Backend Bridge (Apps Script + GitHub Pages PWA) ────────────
+    function isAppsScriptHost() {
+        return typeof google !== 'undefined' && google.script && google.script.run;
+    }
+
+    function getWebAppUrl() {
+        var meta = document.querySelector('meta[name="apps-script-web-app-url"]');
+        return (window.APPS_SCRIPT_WEB_APP_URL || (meta && meta.content) || DEFAULT_APPS_SCRIPT_WEB_APP_URL || '').trim();
+    }
+
+    function callBackend(action, payload) {
+        if (isAppsScriptHost()) {
+            return new Promise(function (resolve, reject) {
+                google.script.run
+                    .withSuccessHandler(resolve)
+                    .withFailureHandler(reject)[action](payload);
+            });
+        }
+
+        var webAppUrl = getWebAppUrl();
+        if (!webAppUrl) {
+            return Promise.reject(new Error('GitHub Pages setup needed: add your deployed Apps Script Web App URL to the apps-script-web-app-url meta tag.'));
+        }
+
+        return callBackendJsonp(webAppUrl, action, payload);
+    }
+
+    function callBackendJsonp(webAppUrl, action, payload) {
+        return new Promise(function (resolve, reject) {
+            var callbackName = '__bcAppointmentCallback_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
+            var separator = webAppUrl.indexOf('?') === -1 ? '?' : '&';
+            var src = webAppUrl + separator + 'api=' + encodeURIComponent(action) +
+                '&callback=' + encodeURIComponent(callbackName) +
+                '&_=' + Date.now();
+
+            if (payload !== undefined && payload !== null) {
+                src += '&payload=' + encodeURIComponent(JSON.stringify(payload));
+            }
+
+            var script = document.createElement('script');
+            var timeoutId = window.setTimeout(function () {
+                cleanup();
+                reject(new Error('Apps Script request timed out. Please try again.'));
+            }, 30000);
+
+            function cleanup() {
+                window.clearTimeout(timeoutId);
+                if (script.parentNode) script.parentNode.removeChild(script);
+                try { delete window[callbackName]; } catch (e) { window[callbackName] = undefined; }
+            }
+
+            window[callbackName] = function (data) {
+                cleanup();
+                resolve(data);
+            };
+
+            script.onerror = function () {
+                cleanup();
+                reject(new Error('Unable to connect to Apps Script. Please check the deployment URL.'));
+            };
+            script.src = src;
+            document.head.appendChild(script);
+        });
     }
 
     function setLoaderStatus(msg) {
@@ -733,8 +797,8 @@
 
         var formData = collectFormData();
 
-        google.script.run
-            .withSuccessHandler(function (res) {
+        callBackend('submitApplication', formData)
+            .then(function (res) {
                 btn.disabled = false;
                 btn.classList.remove('loading');
                 submitBlocked = false;
@@ -744,13 +808,12 @@
                     showErrorScreen(res.error || 'Unknown error from server.');
                 }
             })
-            .withFailureHandler(function (err) {
+            .catch(function (err) {
                 btn.disabled = false;
                 btn.classList.remove('loading');
                 submitBlocked = false;
                 showErrorScreen(err.message || 'Connection failed. Please try again.');
-            })
-            .submitApplication(formData);
+            });
     }
 
     // ── Success Screen ─────────────────────────────────────────────
