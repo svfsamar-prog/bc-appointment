@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bc-appointment-pwa-v1';
+const CACHE_NAME = 'bc-appointment-pwa-v2';
 const APP_SHELL = ['./', './index.html', './manifest.webmanifest', './icon.svg', './offline.html'];
 
 self.addEventListener('install', (event) => {
