@@ -1797,7 +1797,7 @@
 
         var adhEl = document.getElementById('aadhaarNo');
         if (adhEl && stepElement.contains(adhEl)) {
-            var adh = adhEl.value.trim();
+            var adh = aadhaarRaw || adhEl.value.trim();
             if (adh && !/^\d{12}$/.test(adh)) { showError('aadhaarNo', true); valid = false; }
         }
 
@@ -1852,6 +1852,7 @@
         // required array moved to global
         required.forEach(function (f) {
             var val = document.getElementById(f.id).value.trim();
+            if (f.id === 'aadhaarNo' && aadhaarRaw) val = aadhaarRaw;
             if (!val) { showError(f.id, true); valid = false; }
             else { clearError(f.id); }
         });
@@ -1866,7 +1867,7 @@
         else clearError('altContactNo');
 
         // Aadhaar: 12 digits if provided
-        var aadh = document.getElementById('aadhaarNo').value.trim();
+        var aadh = aadhaarRaw || document.getElementById('aadhaarNo').value.trim();
         if (aadh && !/^\d{12}$/.test(aadh)) { showError('aadhaarNo', true); valid = false; }
         else clearError('aadhaarNo');
 
