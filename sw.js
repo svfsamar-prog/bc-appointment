@@ -1,4 +1,6 @@
-const CACHE_NAME = 'bc-appointment-pwa-v2';
+// DEPLOY CHECKLIST: update CACHE_VERSION to today's date on every release.
+const CACHE_VERSION = '2026-06-17';
+const CACHE_NAME = 'bc-appointment-pwa-' + CACHE_VERSION;
 const APP_SHELL = ['./', './index.html', './manifest.webmanifest', './icon.svg', './offline.html'];
 
 self.addEventListener('install', (event) => {
@@ -25,7 +27,7 @@ self.addEventListener('fetch', (event) => {
           caches.open(CACHE_NAME).then((cache) => cache.put('./index.html', copy));
           return response;
         })
-        .catch(() => caches.match('./index.html').then((cached) => cached || caches.match('./offline.html')))
+        .catch(() => caches.match('./index.html'))
     );
     return;
   }
