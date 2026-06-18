@@ -222,9 +222,9 @@ function submitApplication(formData) {
       ? toUpper_(formData.iibfCertificate)
       : 'NO';
 
-    // Get last SINo
+    // Get last SINo (if lastRow is 1, it's just headers, so next is 1. If lastRow is 2, next is 2)
     var lastRow = appointmentsSheet.getLastRow();
-    var siNo    = lastRow > 1 ? lastRow - 1 : 1; // Header is row 1
+    var siNo    = lastRow > 0 ? lastRow : 1;
 
     // Build row — EXACT column order from BC_APPOINTMENTS
     // SINo | BCPartner | Bank | State | Region | District | Block | Branch | BranchCode |
