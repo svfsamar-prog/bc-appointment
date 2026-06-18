@@ -1251,6 +1251,8 @@
         <div class="ref-box">
             <div class="ref-label">Reference ID</div>
             <div class="ref-id" id="s-refId">—</div>
+            <div class="ref-label" style="margin-top:8px;">Sl. No.</div>
+            <div class="ref-id" id="s-siNo">—</div>
             <div class="ref-time" id="s-refTime">—</div>
         </div>
         <button class="btn-action btn-primary-action" onclick="resetForm()">📝 New Application</button>
@@ -1996,7 +1998,7 @@
                 btn.classList.remove('loading');
                 submitBlocked = false;
                 if (res.success) {
-                    showSuccessScreen(res.referenceId, res.submissionDateTime);
+                    showSuccessScreen(res.referenceId, res.submissionDateTime, res.siNo);
                 } else {
                     showErrorScreen(res.error || 'Unknown error from server.');
                 }
@@ -2010,9 +2012,10 @@
     }
 
     // ── Success Screen ─────────────────────────────────────────────
-    function showSuccessScreen(refId, subTime) {
+    function showSuccessScreen(refId, subTime, siNo) {
         clearDraft();
         document.getElementById('s-refId').textContent = refId;
+        if(document.getElementById('s-siNo')) document.getElementById('s-siNo').textContent = siNo || 'N/A';
         document.getElementById('s-refTime').textContent = '🕐 ' + subTime;
         document.getElementById('success-screen').classList.add('show');
         window.scrollTo(0, 0);

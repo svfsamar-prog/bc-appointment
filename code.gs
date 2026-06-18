@@ -310,6 +310,7 @@ function submitApplication(formData) {
     return {
       success: true,
       referenceId: refId,
+      siNo: siNo,
       submissionDateTime: subDT
     };
 
