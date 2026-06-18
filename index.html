@@ -1401,56 +1401,60 @@
     });
 
     function buildReview() {
-        var d = collectFormData();
-        var sections = [
-            { title: 'Location', fields: [
-                ['State', d.state], ['Zone', d.zone], ['Branch', d.branch],
-                ['Branch Code', d.branchCode], ['District', d.district],
-                ['Block', d.block], ['Village', d.villageName], ['Village Code', d.villageCode]
-            ]},
-            { title: 'Personal', fields: [
-                ['CSP Name', d.cspName], ["Father's Name", d.fathersName],
-                ['Contact', d.contactNumber], ['Alt Contact', d.altContactNo],
-                ['DOB', d.dob], ['Gender', d.gender], ['Address', d.address],
-                ['PIN', d.pinCode], ['Caste', d.caste]
-            ]},
-            { title: 'KYC', fields: [
-                ['Aadhaar', d.aadhaarNo ? '••••••••' + d.aadhaarNo.slice(-4) : ''],
-                ['PAN', d.panNo], ['Other ID Type', d.otherIdType],
-                ['Other ID No', d.otherIdNo], ['CIF No', d.agentCifNo]
-            ]},
-            { title: 'Bank', fields: [
-                ['Settlement A/C', d.settlementAccount], ['Saving A/C', d.savingAccount]
-            ]},
-            { title: 'Professional', fields: [
-                ['Education', d.education], ['DOJ', d.doj],
-                ['Upload Purpose', d.uploadPurpose], ['SHG Member', d.shgMember],
-                ['Physically Challenged', d.physicallyChallenged],
-                ['Network Provider', d.networkProvider], ['Email', d.mailId],
-                ['Bank Mitra Activity', d.bankMitraActivity],
-                ['Replaced Agent', d.replacedAgent]
-            ]},
-            { title: 'IIBF', fields: [
-                ['IIBF Certified', d.iibfCertified],
-                ['Certificate No', d.iibfCertificate], ['Cert Date', d.certificateDate]
-            ]}
-        ];
-        var html = '';
-        sections.forEach(function(sec) {
-            html += '<div style="margin-bottom:16px;">';
-            html += '<div style="font-size:12px;font-weight:700;color:var(--text-muted);' +
-                    'text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">' + sec.title + '</div>';
-            html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">';
-            sec.fields.forEach(function(f) {
-                if (!f[1]) return;
-                html += '<div style="background:var(--bg);border-radius:8px;padding:10px 12px;">' +
-                    '<div style="font-size:11px;color:var(--text-muted);font-weight:600;margin-bottom:2px;">' + f[0] + '</div>' +
-                    '<div style="font-size:14px;font-weight:600;color:var(--text);word-break:break-all;">' + f[1] + '</div>' +
-                    '</div>';
+        try {
+            var d = collectFormData();
+            var sections = [
+                { title: 'Location', fields: [
+                    ['State', d.state], ['Zone', d.zone], ['Branch', d.branch],
+                    ['Branch Code', d.branchCode], ['District', d.district],
+                    ['Block', d.block], ['Village', d.villageName], ['Village Code', d.villageCode]
+                ]},
+                { title: 'Personal', fields: [
+                    ['CSP Name', d.cspName], ["Father's Name", d.fathersName],
+                    ['Contact', d.contactNumber], ['Alt Contact', d.altContactNo],
+                    ['DOB', d.dob], ['Gender', d.gender], ['Address', d.address],
+                    ['PIN', d.pinCode], ['Caste', d.caste]
+                ]},
+                { title: 'KYC', fields: [
+                    ['Aadhaar', d.aadhaarNo ? '••••••••' + d.aadhaarNo.slice(-4) : ''],
+                    ['PAN', d.panNo], ['Other ID Type', d.otherIdType],
+                    ['Other ID No', d.otherIdNo], ['CIF No', d.agentCifNo]
+                ]},
+                { title: 'Bank', fields: [
+                    ['Settlement A/C', d.settlementAccount], ['Saving A/C', d.savingAccount]
+                ]},
+                { title: 'Professional', fields: [
+                    ['Education', d.education], ['DOJ', d.doj],
+                    ['Upload Purpose', d.uploadPurpose], ['SHG Member', d.shgMember],
+                    ['Physically Challenged', d.physicallyChallenged],
+                    ['Network Provider', d.networkProvider], ['Email', d.mailId],
+                    ['Bank Mitra Activity', d.bankMitraActivity],
+                    ['Replaced Agent', d.replacedAgent]
+                ]},
+                { title: 'IIBF', fields: [
+                    ['IIBF Certified', d.iibfCertified],
+                    ['Certificate No', d.iibfCertificate], ['Cert Date', d.certificateDate]
+                ]}
+            ];
+            var html = '';
+            sections.forEach(function(sec) {
+                html += '<div style="margin-bottom:16px;">';
+                html += '<div style="font-size:12px;font-weight:700;color:var(--text-muted);' +
+                        'text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">' + sec.title + '</div>';
+                html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">';
+                sec.fields.forEach(function(f) {
+                    if (!f[1]) return;
+                    html += '<div style="background:var(--bg);border-radius:8px;padding:10px 12px;">' +
+                        '<div style="font-size:11px;color:var(--text-muted);font-weight:600;margin-bottom:2px;">' + f[0] + '</div>' +
+                        '<div style="font-size:14px;font-weight:600;color:var(--text);word-break:break-all;">' + f[1] + '</div>' +
+                        '</div>';
+                });
+                html += '</div></div>';
             });
-            html += '</div></div>';
-        });
-        document.getElementById('review-body').innerHTML = html;
+            document.getElementById('review-body').innerHTML = html;
+        } catch (e) {
+            document.getElementById('review-body').innerHTML = '<div style="color:red;padding:20px;"><b>Error rendering review:</b><br>' + e.message + '<br>' + e.stack + '</div>';
+        }
     }
 
     function setMaxDOB() {
