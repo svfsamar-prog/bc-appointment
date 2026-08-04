@@ -19,14 +19,17 @@
   <script>
     if ('serviceWorker' in navigator && location.protocol !== 'file:') {
       window.addEventListener('load', function () {
-        navigator.serviceWorker.register('./sw.js?v=2').then(function (registration) {
+        navigator.serviceWorker.register('./sw.js?v=3').then(function (registration) {
           registration.update();
           registration.addEventListener('updatefound', function () {
             var worker = registration.installing;
             if (!worker) return;
             worker.addEventListener('statechange', function () {
               if (worker.state === 'installed' && navigator.serviceWorker.controller) {
-                console.log('New update available. It will be used on next reload.');
+                // New version available — reload immediately to activate it
+                navigator.serviceWorker.addEventListener('controllerchange', function () {
+                  window.location.reload();
+                });
               }
             });
           });
