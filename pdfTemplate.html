@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  /* ─── Print-safe inline stylesheet ──────────────────────────── */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    color: #1e293b;
+    background: #ffffff;
+    padding: 24px 28px;
+    line-height: 1.4;
+  }
+
+  /* Header */
+  .pdf-header {
+    display: table;
+    width: 100%;
+    border-bottom: 3px solid #1e3a5f;
+    padding-bottom: 12px;
+    margin-bottom: 10px;
+  }
+  .pdf-header-logo-left,
+  .pdf-header-logo-right {
+    display: table-cell;
+    vertical-align: middle;
+    width: 90px;
+  }
+  .pdf-header-logo-right { text-align: right; }
+  .pdf-header-title-cell {
+    display: table-cell;
+    vertical-align: middle;
+    text-align: center;
+  }
+  .pdf-header img {
+    max-height: 52px;
+    max-width: 88px;
+    object-fit: contain;
+  }
+  .pdf-header-title {
+    font-size: 13px;
+    font-weight: bold;
+    color: #1e3a5f;
+    line-height: 1.3;
+  }
+  .pdf-header-subtitle {
+    font-size: 9.5px;
+    color: #64748b;
+    margin-top: 2px;
+  }
+
+  /* Reference strip */
+  .ref-strip {
+    background: #1e3a5f;
+    color: #ffffff;
+    padding: 8px 14px;
+    border-radius: 4px;
+    margin-bottom: 14px;
+    display: table;
+    width: 100%;
+  }
+  .ref-strip-cell {
+    display: table-cell;
+    vertical-align: middle;
+  }
+  .ref-strip-cell + .ref-strip-cell {
+    text-align: right;
+  }
+  .ref-label  { font-size: 8.5px; opacity: 0.75; text-transform: uppercase; letter-spacing: .06em; }
+  .ref-value  { font-size: 12px; font-weight: bold; margin-top: 1px; }
+
+  /* Sections */
+  .section { margin-bottom: 14px; }
+  .section-title {
+    font-size: 9px;
+    font-weight: bold;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 4px;
+    margin-bottom: 6px;
+  }
+  .field-grid {
+    display: table;
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .field-row { display: table-row; }
+  .field-cell {
+    display: table-cell;
+    width: 50%;
+    padding: 4px 6px 4px 0;
+    vertical-align: top;
+  }
+  .field-label {
+    font-size: 8.5px;
+    color: #64748b;
+    font-weight: 600;
+    margin-bottom: 1px;
+  }
+  .field-value {
+    font-size: 11px;
+    font-weight: 600;
+    color: #1e293b;
+    word-break: break-all;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 3px;
+    padding: 3px 6px;
+    min-height: 20px;
+  }
+
+  /* Footer */
+  .pdf-footer {
+    border-top: 1px solid #e2e8f0;
+    margin-top: 16px;
+    padding-top: 8px;
+    font-size: 8px;
+    color: #94a3b8;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<%
+// ─── Template helpers ─────────────────────────────────────────────────────
+// safe(v): returns a trimmed string or empty string
+function safe(v) { return v ? String(v).trim() : ''; }
+
+// maskAadhaar(v): masks all but last 4 digits — matches buildReview() masking:
+//   d.aadhaarNo ? '••••••••' + d.aadhaarNo.slice(-4) : ''
+function maskAadhaar(v) {
+  var s = safe(v);
+  return s ? '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022' + s.slice(-4) : '';
+}
+
+// renderSection(title, fields):
+// fields is an array of [label, value] pairs.
+// Empty values are skipped — mirrors buildReview()'s `if (!f[1]) return;`.
+function renderSection(title, fields) {
+  var pairs = fields.filter(function(f) { return safe(f[1]); });
+  if (!pairs.length) return '';
+
+  var html = '<div class="section">';
+  html += '<div class="section-title">' + title + '</div>';
+  html += '<div class="field-grid">';
+
+  // Render in 2-column rows
+  for (var i = 0; i < pairs.length; i += 2) {
+    html += '<div class="field-row">';
+    html += '<div class="field-cell">' +
+      '<div class="field-label">' + pairs[i][0] + '</div>' +
+      '<div class="field-value">' + pairs[i][1] + '</div>' +
+      '</div>';
+    if (i + 1 < pairs.length) {
+      html += '<div class="field-cell">' +
+        '<div class="field-label">' + pairs[i + 1][0] + '</div>' +
+        '<div class="field-value">' + pairs[i + 1][1] + '</div>' +
+        '</div>';
+    } else {
+      // Odd field — empty right cell to maintain 2-column layout
+      html += '<div class="field-cell"></div>';
+    }
+    html += '</div>';
+  }
+
+  html += '</div></div>';
+  return html;
+}
+
+var d = data; // template variable: formData object passed from generateAndEmailPdf_()
+%>
+
+<!-- ── Header ──────────────────────────────────────────────────────── -->
+<div class="pdf-header">
+  <div class="pdf-header-logo-left">
+    <? if (logoSvf) { ?>
+      <img src="<?= logoSvf ?>" alt="Sanjivani Vikas Foundation">
+    <? } ?>
+  </div>
+  <div class="pdf-header-title-cell">
+    <div class="pdf-header-title">BC / BCA Appointment Application</div>
+    <div class="pdf-header-subtitle">Sanjivani Vikas Foundation &times; UCO Bank</div>
+  </div>
+  <div class="pdf-header-logo-right">
+    <? if (logoUco) { ?>
+      <img src="<?= logoUco ?>" alt="UCO Bank">
+    <? } ?>
+  </div>
+</div>
+
+<!-- ── Reference Strip ─────────────────────────────────────────────── -->
+<div class="ref-strip">
+  <div class="ref-strip-cell">
+    <div class="ref-label">Reference ID</div>
+    <div class="ref-value"><?= refId ?></div>
+  </div>
+  <div class="ref-strip-cell">
+    <div class="ref-label">Sl. No.</div>
+    <div class="ref-value"><?= siNo ?></div>
+  </div>
+  <div class="ref-strip-cell">
+    <div class="ref-label">Submitted</div>
+    <div class="ref-value"><?= subDT ?></div>
+  </div>
+</div>
+
+<!-- ── Form Data Sections ───────────────────────────────────────────── -->
+<!-- Sections and field order mirror buildReview() in index.html exactly -->
+
+<?= renderSection('Location', [
+  ['State',        safe(d.state)],
+  ['Zone',         safe(d.zone)],
+  ['Branch',       safe(d.branch)],
+  ['Branch Code',  safe(d.branchCode)],
+  ['District',     safe(d.district)],
+  ['Block',        safe(d.block)],
+  ['Village',      safe(d.villageName)],
+  ['Village Code', safe(d.villageCode)]
+]) ?>
+
+<?= renderSection('Personal', [
+  ['CSP Name',        safe(d.cspName)],
+  ["Father's Name",   safe(d.fathersName)],
+  ['Contact',         safe(d.contactNumber)],
+  ['Alt Contact',     safe(d.altContactNo)],
+  ['DOB',             safe(d.dob)],
+  ['Gender',          safe(d.gender)],
+  ['Address',         safe(d.address)],
+  ['PIN',             safe(d.pinCode)],
+  ['Caste',           safe(d.caste)]
+]) ?>
+
+<?= renderSection('KYC', [
+  ['Aadhaar',       maskAadhaar(d.aadhaarNo)],
+  ['PAN',           safe(d.panNo)],
+  ['Other ID Type', safe(d.otherIdType)],
+  ['Other ID No',   safe(d.otherIdNo)],
+  ['CIF No',        safe(d.agentCifNo)]
+]) ?>
+
+<?= renderSection('Bank', [
+  ['Settlement A/C', safe(d.settlementAccount)],
+  ['Saving A/C',     safe(d.savingAccount)]
+]) ?>
+
+<?= renderSection('Professional', [
+  ['Education',           safe(d.education)],
+  ['DOJ',                 safe(d.doj)],
+  ['Upload Purpose',      safe(d.uploadPurpose)],
+  ['SHG Member',          safe(d.shgMember)],
+  ['Physically Challenged', safe(d.physicallyChallenged)],
+  ['Network Provider',    safe(d.networkProvider)],
+  ['Email',               safe(d.mailId)],
+  ['Bank Mitra Activity', safe(d.bankMitraActivity)],
+  ['Replaced Agent',      safe(d.replacedAgent)]
+]) ?>
+
+<?= renderSection('IIBF', [
+  ['IIBF Certified', safe(d.iibfCertified)],
+  ['Certificate No', safe(d.iibfCertificate)],
+  ['Cert Date',      safe(d.certificateDate)]
+]) ?>
+
+<!-- ── Footer ───────────────────────────────────────────────────────── -->
+<div class="pdf-footer">
+  Generated automatically by the SVF &times; UCO Bank BC Appointment System &mdash; <?= subDT ?>
+</div>
+
+</body>
+</html>

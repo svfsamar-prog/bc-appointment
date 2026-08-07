@@ -9,6 +9,14 @@ var SHEET_APPOINTMENTS = 'BC_APPOINTMENTS';
 var SHEET_BRANCH_MASTER = 'BRANCH_MASTER';
 var SHEET_SETTINGS      = 'SETTINGS';
 
+// ── Email / PDF Constants ────────────────────────────────────────
+// TODO: Replace the two placeholder values below with real email addresses
+// before deploying. These are the fixed recipients on every submission.
+var FIXED_RECIPIENT_1 = 'REPLACE_ME_1@example.org'; // TODO: set real address
+var FIXED_RECIPIENT_2 = 'REPLACE_ME_2@example.org'; // TODO: set real address
+var LOGO_URL_SVF = 'https://res.cloudinary.com/date69bba/image/upload/v1774602823/SanjivaniVikasLogo_new_2_hpwra4.png';
+var LOGO_URL_UCO = 'https://res.cloudinary.com/date69bba/image/upload/v1776667693/uco-bank-logo_1_i04gtr.png';
+
 // ── Helpers ──────────────────────────────────────────────────
 
 function getSpreadsheet_() {
@@ -182,6 +190,124 @@ function getSubmissionDateTime_() {
   return dd + '/' + mm + '/' + yy + ' ' + hh + ':' + mi + ':' + ss;
 }
 
+// ── getLogoBase64_ ───────────────────────────────────────────────
+// Fetches a logo URL via UrlFetchApp, base64-encodes the bytes, and returns
+// a data URI string (e.g. 'data:image/png;base64,....').
+// Results are cached in CacheService (TTL 6 h, ~21600 s).
+// Apps Script cache values are capped at 100 KB per key; if the encoded
+// logo exceeds that, the result is fetched fresh every time rather than
+// throwing — the PDF will still render correctly, just without caching.
+// Fallback behaviour: if UrlFetchApp fails (e.g. a typo in the URL), the
+// function returns an empty string so the PDF renders without that logo
+// instead of letting the error surface to the end user.
+
+function getLogoBase64_(url) {
+  var cache = CacheService.getScriptCache();
+  var cacheKey = 'logo_b64_' + url.replace(/[^a-zA-Z0-9]/g, '_').slice(-80);
+  var cached = cache.get(cacheKey);
+  if (cached) return cached;
+
+  try {
+    var response = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+    if (response.getResponseCode() !== 200) {
+      Logger.log('getLogoBase64_: non-200 response for ' + url);
+      return '';
+    }
+    var bytes = response.getContent();
+    var b64   = Utilities.base64Encode(bytes);
+    // Detect MIME type from Content-Type header; fall back to image/png
+    var ct    = response.getHeaders()['Content-Type'] || 'image/png';
+    var mime  = ct.split(';')[0].trim() || 'image/png';
+    var dataUri = 'data:' + mime + ';base64,' + b64;
+
+    // Cache only if within Apps Script's 100 KB per-key limit
+    if (dataUri.length <= 100000) {
+      cache.put(cacheKey, dataUri, 21600); // TTL = 6 hours
+    }
+    return dataUri;
+  } catch (err) {
+    // UrlFetchApp failure (bad URL, network error, etc.) — log and degrade
+    // gracefully: the submission already succeeded at this point, so we
+    // never let a logo fetch error break anything.
+    Logger.log('getLogoBase64_ failed for ' + url + ': ' + err.message);
+    return '';
+  }
+}
+
+// ── buildRecipientList_ ──────────────────────────────────────────
+// Builds a comma-joined recipient string for MailApp.sendEmail().
+// Always starts with the two fixed recipients, then appends any valid
+// addresses from officeMailIdFieldValue (comma-separated input).
+// De-duplicates case-insensitively. Never uses formData.mailId — that
+// is the BC/applicant's own email and is unrelated to this feature.
+
+function buildRecipientList_(officeMailIdFieldValue) {
+  var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  var seen = {};
+  var result = [];
+
+  function addIfValid(addr) {
+    var a = (addr || '').trim().toLowerCase();
+    if (a && emailRegex.test(a) && !seen[a]) {
+      seen[a] = true;
+      result.push(a);
+    }
+  }
+
+  // Fixed recipients first
+  addIfValid(FIXED_RECIPIENT_1);
+  addIfValid(FIXED_RECIPIENT_2);
+
+  // Parse comma-separated officeMailId field
+  if (officeMailIdFieldValue) {
+    var parts = String(officeMailIdFieldValue).split(',');
+    parts.forEach(function(p) { addIfValid(p); });
+  }
+
+  return result.join(',');
+}
+
+// ── generateAndEmailPdf_ ─────────────────────────────────────────
+// Generates a PDF of the filled application form and emails it to the
+// recipient list built by buildRecipientList_().
+// This function has its own try/catch — any failure is logged but never
+// propagated to the caller, so a PDF/email problem can never cause
+// submitApplication() to return success:false or throw.
+
+function generateAndEmailPdf_(formData, refId, siNo, subDT) {
+  try {
+    var tmpl = HtmlService.createTemplateFromFile('pdfTemplate');
+    tmpl.data  = formData;
+    tmpl.refId = refId;
+    tmpl.siNo  = siNo;
+    tmpl.subDT = subDT;
+    tmpl.logoSvf = getLogoBase64_(LOGO_URL_SVF);
+    tmpl.logoUco = getLogoBase64_(LOGO_URL_UCO);
+
+    var pdfBlob = tmpl.evaluate()
+      .getAs('application/pdf')
+      .setName('BC-Appointment-' + refId + '.pdf');
+
+    var recipients = buildRecipientList_(formData.officeMailId);
+    if (!recipients) return; // No valid addresses — nothing to send, bail quietly
+
+    MailApp.sendEmail({
+      to: recipients,
+      subject: 'BC/BCA Appointment Application Submitted — ' + refId,
+      body: 'A new BC/BCA appointment application has been submitted.\n\n' +
+            'Reference ID: ' + refId + '\n' +
+            'Sl. No.: ' + siNo + '\n' +
+            'Submitted: ' + subDT + '\n\n' +
+            'The filled application form is attached as a PDF.',
+      attachments: [pdfBlob]
+    });
+  } catch (err) {
+    // Log only — never let a mail/PDF failure break the actual submission,
+    // which has already been written to the sheet by this point.
+    Logger.log('generateAndEmailPdf_ failed: ' + err.message);
+  }
+}
+
 // ── submitApplication ────────────────────────────────────────
 // Full column order matches BC_APPOINTMENTS headers exactly.
 
@@ -306,6 +432,11 @@ function submitApplication(formData) {
     if (formData.savingAccount) {
       appointmentsSheet.getRange(newRow, 34).setNumberFormat('@').setValue(toStr_(formData.savingAccount));
     }
+
+    // Generate and email the filled-form PDF. This runs inside the lock
+    // (so the refId/siNo are stable), but the function's own try/catch
+    // means any failure here can never affect the success:true return below.
+    generateAndEmailPdf_(formData, refId, siNo, subDT);
 
     return {
       success: true,

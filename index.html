@@ -1160,6 +1160,13 @@
                     <span class="field-error" id="err-mailId">Enter a valid email address.</span>
                 </div>
 
+                <div class="form-group">
+                    <label>Your Email / Local Sanjivani Office Email</label>
+                    <input type="email" id="officeMailId" placeholder="office@sanjivanivikas.org or your email"
+                        inputmode="email" autocomplete="off">
+                    <span class="field-error" id="err-officeMailId">Enter a valid email address.</span>
+                </div>
+
                 <div class="form-group col-full">
                     <label>Bank Mitra Any Other Activity <span class="required-mark">*</span></label>
                     <textarea id="bankMitraActivity" rows="2"
@@ -1314,7 +1321,7 @@
         var textFields = ['district','block','villageName','villageCode','cspName',
             'fathersName','contactNumber','altContactNo','address','pinCode',
             'aadhaarNo','panNo','otherIdNo','agentCifNo','settlementAccount',
-            'savingAccount','mailId','bankMitraActivity','replacedAgent',
+            'savingAccount','mailId','officeMailId','bankMitraActivity','replacedAgent',
             'iibfCertificate'];
         textFields.forEach(function(id) {
             var el = document.getElementById(id);
@@ -1442,7 +1449,8 @@
                     ['Physically Challenged', d.physicallyChallenged],
                     ['Network Provider', d.networkProvider], ['Email', d.mailId],
                     ['Bank Mitra Activity', d.bankMitraActivity],
-                    ['Replaced Agent', d.replacedAgent]
+                    ['Replaced Agent', d.replacedAgent],
+                    ['Office/Staff Email', d.officeMailId]
                 ]},
                 { title: 'IIBF', fields: [
                     ['IIBF Certified', d.iibfCertified],
@@ -1823,6 +1831,14 @@
             var mail = mailEl.value.trim();
             if (mail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) { showError('mailId', true); valid = false; }
         }
+
+        // officeMailId: optional, format-check only (not required)
+        var officeMailEl = document.getElementById('officeMailId');
+        if (officeMailEl && stepElement.contains(officeMailEl)) {
+            var officeMail = officeMailEl.value.trim();
+            if (officeMail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(officeMail)) { showError('officeMailId', true); valid = false; }
+            else clearError('officeMailId');
+        }
         
         var iibfCertEl = document.getElementById('iibfCertified');
         if (iibfCertEl && stepElement.contains(iibfCertEl)) {
@@ -1975,6 +1991,7 @@
             physicallyChallenged: document.getElementById('physicallyChallenged').value,
             networkProvider:     document.getElementById('networkProvider').value,
             mailId:              v('mailId').toLowerCase(),  // email stays lowercase
+            officeMailId:        v('officeMailId').toLowerCase(), // office/staff email — routing only, not stored in sheet
             bankMitraActivity:   u('bankMitraActivity'),
             replacedAgent:       u('replacedAgent'),
             iibfCertified:       document.getElementById('iibfCertified').value,
