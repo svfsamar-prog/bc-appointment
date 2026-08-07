@@ -1309,12 +1309,21 @@
 
     function saveDraft() {
         try {
-            localStorage.setItem(DRAFT_KEY, JSON.stringify(collectFormData()));
+            var data = collectFormData();
+            data._step = (typeof currentStep !== 'undefined') ? currentStep : 1;
+            localStorage.setItem(DRAFT_KEY, JSON.stringify(data));
         } catch(e) {}
     }
 
     function clearDraft() {
         try { localStorage.removeItem(DRAFT_KEY); } catch(e) {}
+    }
+
+    function hasDraftContent(draft) {
+        if (!draft || typeof draft !== 'object') return false;
+        return Object.keys(draft).some(function(k) {
+            return k !== '_step' && draft[k] && String(draft[k]).trim().length > 0;
+        });
     }
 
     function restoreDraft(data) {
@@ -1358,30 +1367,44 @@
         }
     }
 
-    function showDraftBanner() {
+    function showDraftBanner(draft) {
+        if (document.getElementById('draft-banner')) return;
+        var nameHint = (draft && (draft.cspName || draft.branch || draft.district || draft.contactNumber)) || 'Saved Form';
         var banner = document.createElement('div');
         banner.id = 'draft-banner';
         banner.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);' +
             'background:#1e293b;color:#fff;padding:12px 20px;border-radius:12px;' +
             'font-size:14px;font-weight:600;z-index:200;display:flex;gap:12px;align-items:center;' +
-            'box-shadow:0 4px 20px rgba(0,0,0,0.2);max-width:340px;text-align:center;';
-        banner.innerHTML = '<span>Unsaved draft found</span>' +
+            'box-shadow:0 4px 20px rgba(0,0,0,0.2);max-width:380px;text-align:center;';
+        banner.innerHTML = '<span>Unsaved draft found (' + nameHint + ')</span>' +
             '<button onclick="doRestoreDraft()" style="background:#007aff;border:none;color:#fff;' +
             'padding:6px 14px;border-radius:8px;cursor:pointer;font-weight:700;font-size:13px;">Restore</button>' +
             '<button onclick="doDiscardDraft()" style="background:transparent;border:none;color:rgba(255,255,255,0.6);' +
             'cursor:pointer;font-size:18px;line-height:1;">×</button>';
         document.body.appendChild(banner);
     }
+
     function doRestoreDraft() {
         var draft = null;
         try { draft = JSON.parse(localStorage.getItem(DRAFT_KEY)); } catch(e) {}
         if (draft) {
             restoreDraft(draft);
             applyDraftBranchCascade(draft);
+            if (draft._step && draft._step > 1 && draft._step <= totalSteps) {
+                document.querySelectorAll('.step-container').forEach(function(el) {
+                    el.classList.remove('active', 'slide-out-left');
+                });
+                currentStep = draft._step;
+                var targetStep = document.getElementById('step-' + currentStep);
+                if (targetStep) targetStep.classList.add('active');
+                if (currentStep === 8) buildReview();
+                updateAppUI();
+            }
         }
         var b = document.getElementById('draft-banner');
         if (b) b.remove();
     }
+
     function doDiscardDraft() {
         clearDraft();
         var b = document.getElementById('draft-banner');
@@ -1389,10 +1412,12 @@
     }
 
     var draftTimeout;
-    document.addEventListener('input', function() {
+    function triggerAutoSave() {
         clearTimeout(draftTimeout);
-        draftTimeout = setTimeout(saveDraft, 1500);
-    });
+        draftTimeout = setTimeout(saveDraft, 500);
+    }
+    document.addEventListener('input', triggerAutoSave);
+    document.addEventListener('change', triggerAutoSave);
 
     // ── State ──────────────────────────────────────────────────────
     var masterRows = [];   // [[state, zone, branchId, branch], ...]
@@ -1509,8 +1534,8 @@
                     hideLoader();
                     var draft = null;
                     try { draft = JSON.parse(localStorage.getItem(DRAFT_KEY)); } catch(e) {}
-                    if (draft && draft.cspName) {
-                        showDraftBanner();
+                    if (draft && hasDraftContent(draft)) {
+                        showDraftBanner(draft);
                     }
                 }, 400);
                 updateProgress();
