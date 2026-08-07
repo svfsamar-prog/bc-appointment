@@ -1,5 +1,5 @@
 // DEPLOY CHECKLIST: update CACHE_VERSION to today's date on every release.
-const CACHE_VERSION = '2026-08-07-2';
+const CACHE_VERSION = '2026-08-07-3';
 const CACHE_NAME = 'bc-appointment-pwa-' + CACHE_VERSION;
 const APP_SHELL = ['./', './index.html', './manifest.webmanifest', './icon.svg', './offline.html'];
 
