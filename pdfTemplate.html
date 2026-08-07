@@ -127,7 +127,7 @@
 </head>
 <body>
 
-<%
+<?
 // ─── Template helpers ─────────────────────────────────────────────────────
 // safe(v): returns a trimmed string or empty string
 function safe(v) { return v ? String(v).trim() : ''; }
@@ -174,7 +174,7 @@ function renderSection(title, fields) {
 }
 
 var d = data; // template variable: formData object passed from generateAndEmailPdf_()
-%>
+?>
 
 <!-- ── Header ──────────────────────────────────────────────────────── -->
 <div class="pdf-header">
@@ -213,7 +213,7 @@ var d = data; // template variable: formData object passed from generateAndEmail
 <!-- ── Form Data Sections ───────────────────────────────────────────── -->
 <!-- Sections and field order mirror buildReview() in index.html exactly -->
 
-<?= renderSection('Location', [
+<?!= renderSection('Location', [
   ['State',        safe(d.state)],
   ['Zone',         safe(d.zone)],
   ['Branch',       safe(d.branch)],
@@ -224,7 +224,7 @@ var d = data; // template variable: formData object passed from generateAndEmail
   ['Village Code', safe(d.villageCode)]
 ]) ?>
 
-<?= renderSection('Personal', [
+<?!= renderSection('Personal', [
   ['CSP Name',        safe(d.cspName)],
   ["Father's Name",   safe(d.fathersName)],
   ['Contact',         safe(d.contactNumber)],
@@ -236,7 +236,7 @@ var d = data; // template variable: formData object passed from generateAndEmail
   ['Caste',           safe(d.caste)]
 ]) ?>
 
-<?= renderSection('KYC', [
+<?!= renderSection('KYC', [
   ['Aadhaar',       maskAadhaar(d.aadhaarNo)],
   ['PAN',           safe(d.panNo)],
   ['Other ID Type', safe(d.otherIdType)],
@@ -244,12 +244,12 @@ var d = data; // template variable: formData object passed from generateAndEmail
   ['CIF No',        safe(d.agentCifNo)]
 ]) ?>
 
-<?= renderSection('Bank', [
+<?!= renderSection('Bank', [
   ['Settlement A/C', safe(d.settlementAccount)],
   ['Saving A/C',     safe(d.savingAccount)]
 ]) ?>
 
-<?= renderSection('Professional', [
+<?!= renderSection('Professional', [
   ['Education',           safe(d.education)],
   ['DOJ',                 safe(d.doj)],
   ['Upload Purpose',      safe(d.uploadPurpose)],
@@ -261,7 +261,7 @@ var d = data; // template variable: formData object passed from generateAndEmail
   ['Replaced Agent',      safe(d.replacedAgent)]
 ]) ?>
 
-<?= renderSection('IIBF', [
+<?!= renderSection('IIBF', [
   ['IIBF Certified', safe(d.iibfCertified)],
   ['Certificate No', safe(d.iibfCertificate)],
   ['Cert Date',      safe(d.certificateDate)]
