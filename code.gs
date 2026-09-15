@@ -72,6 +72,7 @@ function handleApiRequest_(action, payload, callback) {
     if (action === 'getSettings') return apiResponse_(getSettings(), callback);
     if (action === 'getMasterData') return apiResponse_(getMasterData(), callback);
     if (action === 'submitApplication') return apiResponse_(submitApplication(payload || {}), callback);
+    if (action === 'testMail') return apiResponse_(testMail_(), callback);
     return apiResponse_({ success: false, error: 'Unknown API action: ' + action }, callback);
   } catch (err) {
     return apiResponse_({ success: false, error: err.message }, callback);
@@ -286,11 +287,11 @@ function generateAndEmailPdf_(formData, refId, siNo, subDT, isTest) {
       return;
     }
 
-    // ── Step 2: Fetch logos as base64 data URIs ──────────────────
-    Logger.log('generateAndEmailPdf_: fetching logos');
-    var logoSvf = getLogoBase64_(LOGO_URL_SVF);
-    var logoUco = getLogoBase64_(LOGO_URL_UCO);
-    Logger.log('generateAndEmailPdf_: logoSvf length=' + logoSvf.length + ' logoUco length=' + logoUco.length);
+    // ── Step 2: Set logo URLs ─────────────────────────────────────
+    Logger.log('generateAndEmailPdf_: using logo URLs');
+    var logoSvf = LOGO_URL_SVF;
+    var logoUco = LOGO_URL_UCO;
+    Logger.log('generateAndEmailPdf_: logoSvf=' + logoSvf);
 
     // ── Step 3: Build PDF HTML inline — unified design system ───
     var d = formData;
@@ -346,8 +347,8 @@ function generateAndEmailPdf_(formData, refId, siNo, subDT, isTest) {
       ? '<img src="' + logoSvf + '" alt="SVF Logo" style="width:55px;height:55px;display:block;margin:0 auto;">'
       : '<div style="font-size:16px;color:#1a5c1a;font-weight:bold;">SVF</div>';
 
-    // Fetch full Sanjivani Vikas Foundation logo for diagonal watermark
-    var logoFullSvf = getLogoBase64_('https://res.cloudinary.com/date69bba/image/upload/v1774602823/SanjivaniVikasLogo_new_2_hpwra4.png') || logoSvf;
+    // Full Sanjivani Vikas Foundation logo for diagonal watermark
+    var logoFullSvf = 'https://res.cloudinary.com/date69bba/image/upload/v1774602823/SanjivaniVikasLogo_new_2_hpwra4.png';
 
     // Diagonal logo watermark centered across PDF page
     var watermarkSrc = logoFullSvf || logoSvf;
@@ -687,19 +688,40 @@ function generateAndEmailPdf_(formData, refId, siNo, subDT, isTest) {
       '</body></html>';
 
     Logger.log('generateAndEmailPdf_: sending email to ' + recipients);
-    MailApp.sendEmail({
-      to: recipients,
-      subject: emailSubject,
-      body: plainBody,
-      htmlBody: htmlEmailBody,
-      name: 'SVF UCO BC Appointment System',   // controls the sender display name
-      attachments: [pdfBlob]
-    });
-    Logger.log('generateAndEmailPdf_: email sent successfully');
+    var mailSuccess = false;
+    var mailErrDetail = '';
+
+    try {
+      MailApp.sendEmail({
+        to: recipients,
+        subject: emailSubject,
+        body: plainBody,
+        htmlBody: htmlEmailBody,
+        name: 'SVF UCO BC Appointment System',
+        attachments: [pdfBlob]
+      });
+      mailSuccess = true;
+      Logger.log('generateAndEmailPdf_: email sent successfully via MailApp');
+    } catch (mErr) {
+      Logger.log('generateAndEmailPdf_: MailApp failed: ' + mErr.message + ', trying GmailApp fallback...');
+      try {
+        GmailApp.sendEmail(recipients, emailSubject, plainBody, {
+          htmlBody: htmlEmailBody,
+          name: 'SVF UCO BC Appointment System',
+          attachments: [pdfBlob]
+        });
+        mailSuccess = true;
+        Logger.log('generateAndEmailPdf_: email sent successfully via GmailApp fallback');
+      } catch (gErr) {
+        mailErrDetail = 'MailApp: ' + mErr.message + ' | GmailApp: ' + gErr.message;
+        Logger.log('generateAndEmailPdf_: BOTH MailApp and GmailApp failed: ' + mailErrDetail);
+      }
+    }
+    return { success: mailSuccess, error: mailErrDetail };
 
   } catch (err) {
-    // Log only — never let a mail/PDF failure break the actual submission.
     Logger.log('generateAndEmailPdf_ FAILED at step: ' + err.message + ' | stack: ' + err.stack);
+    return { success: false, error: err.message };
   }
 }
 
@@ -906,4 +928,40 @@ function testEmailPdf() {
   var currentSubDT = getSubmissionDateTime_();
   generateAndEmailPdf_(fakeFormData, 'SVF-UCO-TEST-000001', 1, currentSubDT, true);
   Logger.log('testEmailPdf: done — check Apps Script Logs and your inbox at ' + TEST_RECIPIENT);
+}
+
+function testMail_() {
+  try {
+    var recipients = buildRecipientList_('');
+    var testSubject = 'Test Email from BC Appointment System — ' + new Date().toISOString();
+    var testBody = 'This is a diagnostic test email from Sanjivani Vikas Foundation BC Appointment System.\n\nRecipients: ' + recipients;
+
+    var mailSent = false;
+    var errDetail = '';
+
+    try {
+      MailApp.sendEmail({
+        to: recipients,
+        subject: testSubject,
+        body: testBody,
+        name: 'SVF UCO BC Appointment System'
+      });
+      mailSent = true;
+    } catch (e1) {
+      try {
+        GmailApp.sendEmail(recipients, testSubject, testBody, { name: 'SVF UCO BC Appointment System' });
+        mailSent = true;
+      } catch (e2) {
+        errDetail = 'MailApp: ' + e1.message + ' | GmailApp: ' + e2.message;
+      }
+    }
+
+    return {
+      success: mailSent,
+      recipients: recipients,
+      error: errDetail
+    };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
 }

@@ -20,7 +20,7 @@
   <script>
     if ('serviceWorker' in navigator && location.protocol !== 'file:') {
       window.addEventListener('load', function () {
-        navigator.serviceWorker.register('./sw.js?v=7').then(function (registration) {
+        navigator.serviceWorker.register('./sw.js?v=8').then(function (registration) {
           registration.update();
           registration.addEventListener('updatefound', function () {
             var worker = registration.installing;
@@ -1720,6 +1720,10 @@
         var webAppUrl = getWebAppUrl();
         if (!webAppUrl) {
             return Promise.reject(new Error('GitHub Pages setup needed: add your deployed Apps Script Web App URL to the apps-script-web-app-url meta tag.'));
+        }
+
+        if (action === 'submitApplication') {
+            return callBackendPost(webAppUrl, action, payload);
         }
 
         return callBackendJsonp(webAppUrl, action, payload);
