@@ -1707,6 +1707,41 @@
         return callBackendPost(webAppUrl, action, payload);
     }
 
+    function callBackendJsonp(webAppUrl, action, payload) {
+        return new Promise(function(resolve, reject) {
+            var callbackName = 'jsonp_cb_' + Math.round(100000 * Math.random());
+            var script = document.createElement('script');
+
+            var timeout = setTimeout(function() {
+                delete window[callbackName];
+                if (script.parentNode) script.parentNode.removeChild(script);
+                reject(new Error('Apps Script JSONP request timed out. Please check Web App deployment settings (Who has access: Anyone).'));
+            }, 25000);
+
+            window[callbackName] = function(data) {
+                clearTimeout(timeout);
+                delete window[callbackName];
+                if (script.parentNode) script.parentNode.removeChild(script);
+                resolve(data);
+            };
+
+            var url = webAppUrl + (webAppUrl.indexOf('?') >= 0 ? '&' : '?') +
+                'api=' + encodeURIComponent(action) +
+                '&payload=' + encodeURIComponent(JSON.stringify(payload || {})) +
+                '&callback=' + encodeURIComponent(callbackName);
+
+            script.onerror = function() {
+                clearTimeout(timeout);
+                delete window[callbackName];
+                if (script.parentNode) script.parentNode.removeChild(script);
+                reject(new Error('CORS / Access Blocked by Google Apps Script. In Apps Script, click Deploy > Manage Deployments > Edit and set "Who has access" to "Anyone".'));
+            };
+
+            script.src = url;
+            document.head.appendChild(script);
+        });
+    }
+
     function callBackendPost(webAppUrl, action, payload) {
         return fetch(webAppUrl, {
             method: 'POST',
@@ -1718,13 +1753,13 @@
         })
         .then(function(response) {
             if (!response.ok) {
-                throw new Error('Network response was not ok');
+                throw new Error('Network response was not ok (status: ' + response.status + ')');
             }
             return response.json();
         })
         .catch(function(error) {
-            console.error('Fetch error:', error);
-            throw new Error('Unable to connect to Apps Script. Please check the deployment URL. ' + error.message);
+            console.warn('POST fetch failed, trying JSONP fallback:', error);
+            return callBackendJsonp(webAppUrl, action, payload);
         });
     }
 
