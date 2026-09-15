@@ -13,7 +13,7 @@
     var submitBlocked = false;
     var aadhaarRaw = '';
     var DRAFT_KEY = 'svf_uco_bc_appointment_draft_v2';
-    var DEFAULT_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxYObNNRCYpzYsYGpzTSDd3nv4VfhI5d2WWcKfIAX-yJzBnlgwXOIXKVqfaWbelL2UZ/exec';
+    var DEFAULT_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzEzTX53uHHdcHX_TH_WyRofCRzHU4DY2cqPCVRVF5DxMzhfImq5BYwH67y0R1xauS1/exec';
 
     // ── Init on DOM Ready ────────────────────────────────────────
     window.addEventListener('DOMContentLoaded', function () {
