@@ -1,7 +1,7 @@
 // DEPLOY CHECKLIST: update CACHE_VERSION to today's date on every release.
-const CACHE_VERSION = '2026-09-15-v5';
+const CACHE_VERSION = '2026-09-15-v6';
 const CACHE_NAME = 'bc-appointment-pwa-' + CACHE_VERSION;
-const APP_SHELL = ['./', './index.html', './masterdata.js', './manifest.webmanifest', './icon.svg', './offline.html'];
+const APP_SHELL = ['./', './index.html', './styles.css', './app.js', './masterdata.js', './manifest.webmanifest', './icon.svg', './offline.html'];
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
