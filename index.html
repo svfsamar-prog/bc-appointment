@@ -12,14 +12,14 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="BC/BCA Form">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apps-script-web-app-url" content="https://script.google.com/macros/s/AKfycbzEzTX53uHHdcHX_TH_WyRofCRzHU4DY2cqPCVRVF5DxMzhfImq5BYwH67y0R1xauS1/exec">
+  <meta name="apps-script-web-app-url" content="https://script.google.com/macros/s/AKfycbxYObNNRCYpzYsYGpzTSDd3nv4VfhI5d2WWcKfIAX-yJzBnlgwXOIXKVqfaWbelL2UZ/exec">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icon-192.png">
   <script>
     if ('serviceWorker' in navigator && location.protocol !== 'file:') {
       window.addEventListener('load', function () {
-        navigator.serviceWorker.register('./sw.js?v=4').then(function (registration) {
+        navigator.serviceWorker.register('./sw.js?v=5').then(function (registration) {
           registration.update();
           registration.addEventListener('updatefound', function () {
             var worker = registration.installing;
@@ -1559,7 +1559,7 @@
     // ── State ──────────────────────────────────────────────────────
     var masterRows = [];   // [[state, zone, branchId, branch], ...]
     var submitBlocked = false;
-    var DEFAULT_APPS_SCRIPT_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzEzTX53uHHdcHX_TH_WyRofCRzHU4DY2cqPCVRVF5DxMzhfImq5BYwH67y0R1xauS1/exec';
+    var DEFAULT_APPS_SCRIPT_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxYObNNRCYpzYsYGpzTSDd3nv4VfhI5d2WWcKfIAX-yJzBnlgwXOIXKVqfaWbelL2UZ/exec';
 
     // ── Init ───────────────────────────────────────────────────────
     window.addEventListener('DOMContentLoaded', function () {
@@ -1784,7 +1784,11 @@
     }
 
     function showFatalError(msg) {
-        document.getElementById('loader-status').textContent = '⚠️ ' + msg;
+        var statusEl = document.getElementById('loader-status');
+        if (statusEl) {
+            statusEl.innerHTML = '⚠️ ' + msg + '<br><br>' +
+                '<button type="button" class="btn-primary" style="margin-top:10px;padding:8px 18px;font-size:0.9rem;cursor:pointer;" onclick="loadData()">🔄 Retry Connection</button>';
+        }
     }
 
     // ── Branch Cascade ─────────────────────────────────────────────
