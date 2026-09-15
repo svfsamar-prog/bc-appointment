@@ -350,16 +350,23 @@
                     <span class="field-error" id="err-officeMailId">Enter a valid email address.</span>
                 </div>
 
-                <div class="form-group col-full">
-                    <label>Bank Mitra Any Other Activity</label>
-                    <textarea id="bankMitraActivity" rows="2"
-                        placeholder="Describe any other activities the Bank Mitra is involved in"></textarea>
+                <div class="form-group col-full" style="display: none;">
+                    <input type="hidden" id="bankMitraActivity" value="NO">
                 </div>
 
-                <div class="form-group col-full">
-                    <label>Replaced Agent Details</label>
-                    <textarea id="replacedAgent" rows="2"
-                        placeholder="Details of agent being replaced (if applicable)"></textarea>
+                <div class="form-group col-full" id="replacedAgent-wrap">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label>Replaced Agent Name</label>
+                            <input type="text" id="replacedAgentName" placeholder="Enter full name of replaced agent" autocomplete="off">
+                            <span class="field-error" id="err-replacedAgentName">Replaced agent name is required.</span>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label>Replaced Agent ID</label>
+                            <input type="text" id="replacedAgentId" placeholder="Enter agent ID of replaced agent" autocomplete="off">
+                            <span class="field-error" id="err-replacedAgentId">Replaced agent ID is required.</span>
+                        </div>
+                    </div>
                 </div>
 
             </div>
@@ -747,10 +754,23 @@
     // ── Collect Form Data ──────────────────────────────────────────
     // All text fields are uppercased before submission.
     // Account numbers are stored as strings to preserve leading zeros.
-    function u(id) { return document.getElementById(id).value.trim().toUpperCase(); }
-    function v(id) { return document.getElementById(id).value.trim(); }   // raw (no case change)
+    function u(id) {
+        var el = document.getElementById(id);
+        return el ? el.value.trim().toUpperCase() : '';
+    }
+    function v(id) {
+        var el = document.getElementById(id);
+        return el ? el.value.trim() : '';
+    }   // raw (no case change)
 
     function collectFormData() {
+        var repName = v('replacedAgentName').toUpperCase();
+        var repId = v('replacedAgentId').toUpperCase();
+        var replacedAgentVal = 'NA';
+        if (u('uploadPurpose') === 'REPLACEMENT') {
+            replacedAgentVal = (repName || repId) ? (repName + ' (' + repId + ')') : '';
+        }
+
         return {
             state:               u('state'),
             zone:                u('zone'),
@@ -764,31 +784,31 @@
             fathersName:         u('fathersName'),
             contactNumber:       v('contactNumber'),        // digits only
             altContactNo:        v('altContactNo'),         // digits only
-            dob:                 document.getElementById('dob').value,
-            gender:              document.getElementById('gender').value,
+            dob:                 document.getElementById('dob') ? document.getElementById('dob').value : '',
+            gender:              document.getElementById('gender') ? document.getElementById('gender').value : '',
             address:             u('address'),
             pinCode:             v('pinCode'),              // digits only
-            caste:               document.getElementById('caste').value,
+            caste:               document.getElementById('caste') ? document.getElementById('caste').value : '',
             aadhaarNo:           v('aadhaarNo'),            // digits only
             panNo:               u('panNo'),
-            otherIdType:         document.getElementById('otherIdType').value,
+            otherIdType:         document.getElementById('otherIdType') ? document.getElementById('otherIdType').value : '',
             otherIdNo:           u('otherIdNo'),
             agentCifNo:          v('agentCifNo'),           // digits — preserve leading zeros as string
             // Account numbers passed as plain strings; backend stores as text to preserve leading zeros
             settlementAccount:   v('settlementAccount'),
             savingAccount:       v('savingAccount'),
-            education:           document.getElementById('education').value,
-            doj:                 document.getElementById('doj').value,
+            education:           document.getElementById('education') ? document.getElementById('education').value : '',
+            doj:                 document.getElementById('doj') ? document.getElementById('doj').value : '',
             uploadPurpose:       u('uploadPurpose'),
-            shgMember:           document.getElementById('shgMember').value,
-            physicallyChallenged: document.getElementById('physicallyChallenged').value,
-            networkProvider:     document.getElementById('networkProvider').value,
+            shgMember:           document.getElementById('shgMember') ? document.getElementById('shgMember').value : '',
+            physicallyChallenged: document.getElementById('physicallyChallenged') ? document.getElementById('physicallyChallenged').value : '',
+            networkProvider:     document.getElementById('networkProvider') ? document.getElementById('networkProvider').value : '',
             mailId:              v('mailId').toLowerCase(),  // email stays lowercase
-            bankMitraActivity:   u('bankMitraActivity'),
-            replacedAgent:       u('replacedAgent'),
-            iibfCertified:       document.getElementById('iibfCertified').value,
+            bankMitraActivity:   'NO',
+            replacedAgent:       replacedAgentVal,
+            iibfCertified:       document.getElementById('iibfCertified') ? document.getElementById('iibfCertified').value : '',
             iibfCertificate:     u('iibfCertificate'),
-            certificateDate:     document.getElementById('certificateDate').value
+            certificateDate:     document.getElementById('certificateDate') ? document.getElementById('certificateDate').value : ''
         };
     }
 

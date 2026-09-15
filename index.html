@@ -789,6 +789,120 @@
             border-bottom: 1px solid rgba(0,0,0,0.05);
             margin-bottom: 16px;
         }
+    /* Validation Modal Popup */
+    .validation-modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(15, 23, 42, 0.65);
+        backdrop-filter: blur(4px);
+        z-index: 10000;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+    .validation-modal-overlay.show {
+        display: flex;
+    }
+    .validation-modal-card {
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+        max-width: 600px;
+        width: 100%;
+        max-height: 85vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        animation: modalPopIn 0.25s ease-out;
+    }
+    @keyframes modalPopIn {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+    }
+    .validation-modal-header {
+        padding: 16px 20px;
+        background: #fef2f2;
+        border-bottom: 1px solid #fee2e2;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .validation-modal-header h3 {
+        margin: 0;
+        color: #991b1b;
+        font-size: 1.1rem;
+        font-weight: 700;
+    }
+    .validation-modal-close {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: #991b1b;
+        cursor: pointer;
+        line-height: 1;
+    }
+    .validation-modal-body {
+        padding: 20px;
+        overflow-y: auto;
+        flex: 1;
+    }
+    .validation-error-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .validation-error-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-left: 4px solid #ef4444;
+        padding: 12px 16px;
+        border-radius: 6px;
+        gap: 12px;
+    }
+    .validation-error-info {
+        flex: 1;
+    }
+    .validation-error-step {
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #64748b;
+        margin-bottom: 2px;
+    }
+    .validation-error-name {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #1e293b;
+    }
+    .validation-error-msg {
+        font-size: 0.85rem;
+        color: #dc2626;
+        margin-top: 2px;
+    }
+    .btn-jump-step {
+        background: #2563eb;
+        color: #ffffff;
+        border: none;
+        padding: 8px 14px;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background 0.15s ease;
+    }
+    .btn-jump-step:hover {
+        background: #1d4ed8;
+    }
+    .validation-modal-footer {
+        padding: 14px 20px;
+        background: #f8fafc;
+        border-top: 1px solid #e2e8f0;
+        text-align: right;
     }
 
 </style>
@@ -1185,19 +1299,24 @@
                     <span class="field-error" id="err-officeMailId">Enter a valid email address.</span>
                 </div>
 
-                <div class="form-group col-full">
-                    <label>Bank Mitra Any Other Activity <span class="required-mark">*</span></label>
-                    <textarea id="bankMitraActivity" rows="2"
-                        placeholder="Describe any other activities the Bank Mitra is involved in"></textarea>
-                <span class="field-error" id="err-bankMitraActivity">This field is required.</span>
-                    </div>
+                <div class="form-group col-full" style="display: none;">
+                    <input type="hidden" id="bankMitraActivity" value="NO">
+                </div>
 
-                <div class="form-group col-full" id="replacedAgent-wrap">
-                    <label>Replaced Agent Details <span class="required-mark">*</span></label>
-                    <textarea id="replacedAgent" rows="2"
-                        placeholder="Details of agent being replaced (if applicable)"></textarea>
-                <span class="field-error" id="err-replacedAgent">This field is required.</span>
+                <div class="form-group col-full hidden-field" id="replacedAgent-wrap">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label>Replaced Agent Name <span class="required-mark">*</span></label>
+                            <input type="text" id="replacedAgentName" placeholder="Enter full name of replaced agent" autocomplete="off">
+                            <span class="field-error" id="err-replacedAgentName">Replaced agent name is required.</span>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label>Replaced Agent ID <span class="required-mark">*</span></label>
+                            <input type="text" id="replacedAgentId" placeholder="Enter agent ID of replaced agent" autocomplete="off">
+                            <span class="field-error" id="err-replacedAgentId">Replaced agent ID is required.</span>
+                        </div>
                     </div>
+                </div>
 
             </div>
         </div>
@@ -1723,20 +1842,16 @@
     // ── Upload Purpose Toggle Logic ────────────────────────────────
     function onUploadPurposeChange(value) {
         selectToggle('uploadPurpose-group', value);
-        var agentDetails = document.getElementById('replacedAgent');
+        var nameEl = document.getElementById('replacedAgentName');
+        var idEl = document.getElementById('replacedAgentId');
         if (value === 'NEW') {
             document.getElementById('replacedAgent-wrap').classList.add('hidden-field');
-            agentDetails.value = 'NA';
-            agentDetails.readOnly = true;
-            agentDetails.classList.add('locked');
-            clearError('replacedAgent');
+            if (nameEl) nameEl.value = '';
+            if (idEl) idEl.value = '';
+            clearError('replacedAgentName');
+            clearError('replacedAgentId');
         } else {
             document.getElementById('replacedAgent-wrap').classList.remove('hidden-field');
-            if (agentDetails.value === 'NA') {
-                agentDetails.value = '';
-            }
-            agentDetails.readOnly = false;
-            agentDetails.classList.remove('locked');
         }
     }
 
@@ -1753,6 +1868,107 @@
         if (input) input.classList.toggle('error', show);
     }
     function clearError(id) { showError(id, false); }
+
+    // ── Validation Modal & Page Jump Helpers ───────────────────────
+    function getStepInfoForField(fieldId) {
+        var el = document.getElementById(fieldId);
+        if (!el) return { stepNum: 1, stepTitle: 'General' };
+        var stepEl = el.closest('.step-container');
+        if (!stepEl) return { stepNum: 1, stepTitle: 'General' };
+        var stepNum = parseInt(stepEl.id.replace('step-', ''), 10) || 1;
+        var titleEl = stepEl.querySelector('.section-title');
+        var stepTitle = titleEl ? titleEl.textContent.trim() : ('Step ' + stepNum);
+        return { stepNum: stepNum, stepTitle: stepTitle };
+    }
+
+    function getFieldLabel(fieldId) {
+        var el = document.getElementById(fieldId);
+        if (!el) return fieldId;
+        var group = el.closest('.form-group');
+        if (group) {
+            var labelEl = group.querySelector('label');
+            if (labelEl) {
+                var clone = labelEl.cloneNode(true);
+                var reqSpan = clone.querySelector('.required-mark');
+                if (reqSpan) reqSpan.remove();
+                return clone.textContent.trim();
+            }
+        }
+        return fieldId;
+    }
+
+    function showValidationPopup(errorList) {
+        var modal = document.getElementById('validationModal');
+        var listContainer = document.getElementById('validationModalList');
+        if (!modal || !listContainer) return;
+
+        listContainer.innerHTML = '';
+        errorList.forEach(function(item) {
+            var itemEl = document.createElement('div');
+            itemEl.className = 'validation-error-item';
+
+            var infoEl = document.createElement('div');
+            infoEl.className = 'validation-error-info';
+
+            var stepBadge = document.createElement('div');
+            stepBadge.className = 'validation-error-step';
+            stepBadge.textContent = 'Step ' + item.stepNum + ': ' + item.stepTitle;
+
+            var nameEl = document.createElement('div');
+            nameEl.className = 'validation-error-name';
+            nameEl.textContent = item.label;
+
+            var msgEl = document.createElement('div');
+            msgEl.className = 'validation-error-msg';
+            msgEl.textContent = item.msg;
+
+            infoEl.appendChild(stepBadge);
+            infoEl.appendChild(nameEl);
+            infoEl.appendChild(msgEl);
+
+            var btnEl = document.createElement('button');
+            btnEl.type = 'button';
+            btnEl.className = 'btn-jump-step';
+            btnEl.textContent = 'Jump to Page ' + item.stepNum;
+            btnEl.onclick = function() {
+                jumpToStepAndField(item.stepNum, item.fieldId);
+            };
+
+            itemEl.appendChild(infoEl);
+            itemEl.appendChild(btnEl);
+            listContainer.appendChild(itemEl);
+        });
+
+        modal.classList.add('show');
+    }
+
+    function closeValidationModal() {
+        var modal = document.getElementById('validationModal');
+        if (modal) modal.classList.remove('show');
+    }
+
+    function jumpToStepAndField(stepNum, fieldId) {
+        closeValidationModal();
+        var currentStepEl = document.getElementById('step-' + currentStep);
+        if (currentStepEl) {
+            currentStepEl.classList.remove('active', 'slide-out-left');
+        }
+        currentStep = stepNum;
+        if (currentStep === 8) buildReview();
+        var nextEl = document.getElementById('step-' + currentStep);
+        if (nextEl) nextEl.classList.add('active');
+        updateAppUI();
+
+        if (fieldId) {
+            setTimeout(function() {
+                var targetInput = document.getElementById(fieldId);
+                if (targetInput) {
+                    targetInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    targetInput.focus();
+                }
+            }, 150);
+        }
+    }
 
     
     // ── App Step Logic ──────────────────────────────────────────
@@ -1790,7 +2006,6 @@
             { id: 'physicallyChallenged', msg: null },
             { id: 'networkProvider', msg: null },
             { id: 'mailId', msg: null },
-            { id: 'bankMitraActivity', msg: null },
             { id: 'altContactNo', msg: null }
         ];
 
@@ -1906,14 +2121,22 @@
         }
 
         var uploadPurposeEl = document.getElementById('uploadPurpose');
-        var replacedAgentEl = document.getElementById('replacedAgent');
-        if (replacedAgentEl && stepElement.contains(replacedAgentEl)) {
+        var replacedAgentWrapEl = document.getElementById('replacedAgent-wrap');
+        if (replacedAgentWrapEl && stepElement.contains(replacedAgentWrapEl)) {
             if (uploadPurposeEl && uploadPurposeEl.value === 'REPLACEMENT') {
-                var repVal = replacedAgentEl.value.trim();
-                if (!repVal) { showError('replacedAgent', true); valid = false; }
-                else { clearError('replacedAgent'); }
+                var repNameEl = document.getElementById('replacedAgentName');
+                var repIdEl = document.getElementById('replacedAgentId');
+                if (repNameEl) {
+                    if (!repNameEl.value.trim()) { showError('replacedAgentName', true); valid = false; }
+                    else clearError('replacedAgentName');
+                }
+                if (repIdEl) {
+                    if (!repIdEl.value.trim()) { showError('replacedAgentId', true); valid = false; }
+                    else clearError('replacedAgentId');
+                }
             } else {
-                clearError('replacedAgent');
+                clearError('replacedAgentName');
+                clearError('replacedAgentId');
             }
         }
 
@@ -1922,85 +2145,163 @@
 
 
     function validateForm() {
-        var valid = true;
+        var errorList = [];
+
+        function addError(fieldId, customMsg) {
+            showError(fieldId, true);
+            if (!errorList.some(function(e) { return e.fieldId === fieldId; })) {
+                var info = getStepInfoForField(fieldId);
+                var label = getFieldLabel(fieldId);
+                errorList.push({
+                    fieldId: fieldId,
+                    label: label,
+                    stepNum: info.stepNum,
+                    stepTitle: info.stepTitle,
+                    msg: customMsg || 'This field is required or invalid.'
+                });
+            }
+        }
 
         // Required fields
-        // required array moved to global
         required.forEach(function (f) {
-            var val = document.getElementById(f.id).value.trim();
+            var el = document.getElementById(f.id);
+            if (!el) return;
+            var val = el.value.trim();
             if (f.id === 'aadhaarNo' && aadhaarRaw) val = aadhaarRaw;
-            if (!val) { showError(f.id, true); valid = false; }
-            else { clearError(f.id); }
+            if (!val) {
+                addError(f.id, 'This field is required.');
+            } else {
+                clearError(f.id);
+            }
         });
 
         // Contact: 10 digits
-        var contact = document.getElementById('contactNumber').value.trim();
-        if (contact && !/^\d{10}$/.test(contact)) { showError('contactNumber', true); valid = false; }
+        var contactEl = document.getElementById('contactNumber');
+        if (contactEl) {
+            var contact = contactEl.value.trim();
+            if (contact && !/^\d{10}$/.test(contact)) {
+                addError('contactNumber', 'Enter a valid 10-digit contact number.');
+            }
+        }
 
         // Alt contact: 10 digits if provided
-        var alt = document.getElementById('altContactNo').value.trim();
-        if (alt && !/^\d{10}$/.test(alt)) { showError('altContactNo', true); valid = false; }
-        else clearError('altContactNo');
+        var altEl = document.getElementById('altContactNo');
+        if (altEl) {
+            var alt = altEl.value.trim();
+            if (alt && !/^\d{10}$/.test(alt)) {
+                addError('altContactNo', 'Enter a valid 10-digit contact number.');
+            } else clearError('altContactNo');
+        }
 
         // Aadhaar: 12 digits if provided
-        var aadh = aadhaarRaw || document.getElementById('aadhaarNo').value.trim();
-        if (aadh && !/^\d{12}$/.test(aadh)) { showError('aadhaarNo', true); valid = false; }
-        else clearError('aadhaarNo');
+        var aadhEl = document.getElementById('aadhaarNo');
+        if (aadhEl) {
+            var aadh = aadhaarRaw || aadhEl.value.trim();
+            if (aadh && !/^\d{12}$/.test(aadh)) {
+                addError('aadhaarNo', 'Enter a valid 12-digit Aadhaar number.');
+            } else clearError('aadhaarNo');
+        }
 
         // PAN: ABCDE1234F format if provided
-        var pan = document.getElementById('panNo').value.trim().toUpperCase();
-        if (pan && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(pan)) { showError('panNo', true); valid = false; }
-        else clearError('panNo');
+        var panEl = document.getElementById('panNo');
+        if (panEl) {
+            var pan = panEl.value.trim().toUpperCase();
+            if (pan && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(pan)) {
+                addError('panNo', 'Enter a valid PAN number (e.g. ABCDE1234F).');
+            } else clearError('panNo');
+        }
 
         // Pin code: 6 digits if provided
-        var pin = document.getElementById('pinCode').value.trim();
-        if (pin && !/^\d{6}$/.test(pin)) { showError('pinCode', true); valid = false; }
-        else clearError('pinCode');
+        var pinEl = document.getElementById('pinCode');
+        if (pinEl) {
+            var pin = pinEl.value.trim();
+            if (pin && !/^\d{6}$/.test(pin)) {
+                addError('pinCode', 'Enter a valid 6-digit PIN code.');
+            } else clearError('pinCode');
+        }
 
         // Email if provided
-        var email = document.getElementById('mailId').value.trim();
-        if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showError('mailId', true); valid = false; }
-        else clearError('mailId');
+        var emailEl = document.getElementById('mailId');
+        if (emailEl) {
+            var email = emailEl.value.trim();
+            if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                addError('mailId', 'Enter a valid email address.');
+            } else clearError('mailId');
+        }
+
+        // Office email if provided
+        var officeEmailEl = document.getElementById('officeMailId');
+        if (officeEmailEl) {
+            var officeEmail = officeEmailEl.value.trim();
+            if (officeEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(officeEmail)) {
+                addError('officeMailId', 'Enter a valid email address.');
+            } else clearError('officeMailId');
+        }
 
         // IIBF certification check
-        var iibfCert = document.getElementById('iibfCertified').value;
-        if (!iibfCert) { showError('iibfCertified', true); valid = false; }
-        else { clearError('iibfCertified'); }
-        
-        if (iibfCert === 'Yes') {
-            var certNo = document.getElementById('iibfCertificate').value.trim();
-            if (!certNo) { showError('iibfCertificate', true); valid = false; }
-            else clearError('iibfCertificate');
-            
-            var cDate = document.getElementById('certificateDate').value.trim();
-            if (!cDate) { showError('certificateDate', true); valid = false; }
-            else clearError('certificateDate');
+        var iibfCertEl = document.getElementById('iibfCertified');
+        if (iibfCertEl) {
+            var iibfCert = iibfCertEl.value;
+            if (!iibfCert) {
+                addError('iibfCertified', 'Please select IIBF certification status.');
+            } else {
+                clearError('iibfCertified');
+                if (iibfCert === 'Yes') {
+                    var certNo = document.getElementById('iibfCertificate').value.trim();
+                    if (!certNo) { addError('iibfCertificate', 'IIBF Certificate number is required.'); }
+                    else clearError('iibfCertificate');
+
+                    var cDate = document.getElementById('certificateDate').value.trim();
+                    if (!cDate) { addError('certificateDate', 'Certificate Date is required.'); }
+                    else clearError('certificateDate');
+                }
+            }
         }
 
-        var uploadPurposeVal = document.getElementById('uploadPurpose').value;
+        var uploadPurposeVal = document.getElementById('uploadPurpose') ? document.getElementById('uploadPurpose').value : '';
         if (uploadPurposeVal === 'REPLACEMENT') {
-            if (!document.getElementById('replacedAgent').value.trim()) { showError('replacedAgent', true); valid = false; }
-            else { clearError('replacedAgent'); }
+            var repNameVal = document.getElementById('replacedAgentName') ? document.getElementById('replacedAgentName').value.trim() : '';
+            var repIdVal = document.getElementById('replacedAgentId') ? document.getElementById('replacedAgentId').value.trim() : '';
+            if (!repNameVal) {
+                addError('replacedAgentName', 'Replaced Agent Name is required.');
+            } else { clearError('replacedAgentName'); }
+
+            if (!repIdVal) {
+                addError('replacedAgentId', 'Replaced Agent ID is required.');
+            } else { clearError('replacedAgentId'); }
         } else {
-            clearError('replacedAgent');
+            clearError('replacedAgentName');
+            clearError('replacedAgentId');
         }
 
-        // Scroll to first error
-        if (!valid) {
-            var firstErr = document.querySelector('.field-error.show');
-            if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (errorList.length > 0) {
+            showValidationPopup(errorList);
+            return false;
         }
 
-        return valid;
+        return true;
     }
 
     // ── Collect Form Data ──────────────────────────────────────────
     // All text fields are uppercased before submission.
     // Account numbers are stored as strings to preserve leading zeros.
-    function u(id) { return document.getElementById(id).value.trim().toUpperCase(); }
-    function v(id) { return document.getElementById(id).value.trim(); }   // raw (no case change)
+    function u(id) {
+        var el = document.getElementById(id);
+        return el ? el.value.trim().toUpperCase() : '';
+    }
+    function v(id) {
+        var el = document.getElementById(id);
+        return el ? el.value.trim() : '';
+    }   // raw (no case change)
 
     function collectFormData() {
+        var repName = v('replacedAgentName').toUpperCase();
+        var repId = v('replacedAgentId').toUpperCase();
+        var replacedAgentVal = 'NA';
+        if (u('uploadPurpose') === 'REPLACEMENT') {
+            replacedAgentVal = (repName || repId) ? (repName + ' (' + repId + ')') : '';
+        }
+
         return {
             state:               u('state'),
             zone:                u('zone'),
@@ -2014,32 +2315,32 @@
             fathersName:         u('fathersName'),
             contactNumber:       v('contactNumber'),        // digits only
             altContactNo:        v('altContactNo'),         // digits only
-            dob:                 document.getElementById('dob').value,
-            gender:              document.getElementById('gender').value,
+            dob:                 document.getElementById('dob') ? document.getElementById('dob').value : '',
+            gender:              document.getElementById('gender') ? document.getElementById('gender').value : '',
             address:             u('address'),
             pinCode:             v('pinCode'),              // digits only
-            caste:               document.getElementById('caste').value,
+            caste:               document.getElementById('caste') ? document.getElementById('caste').value : '',
             aadhaarNo:           aadhaarRaw || v('aadhaarNo'),            // digits only
             panNo:               u('panNo'),
-            otherIdType:         document.getElementById('otherIdType').value,
+            otherIdType:         document.getElementById('otherIdType') ? document.getElementById('otherIdType').value : '',
             otherIdNo:           u('otherIdNo'),
             agentCifNo:          v('agentCifNo'),           // digits — preserve leading zeros as string
             // Account numbers passed as plain strings; backend stores as text to preserve leading zeros
             settlementAccount:   v('settlementAccount'),
             savingAccount:       v('savingAccount'),
-            education:           document.getElementById('education').value,
-            doj:                 document.getElementById('doj').value,
+            education:           document.getElementById('education') ? document.getElementById('education').value : '',
+            doj:                 document.getElementById('doj') ? document.getElementById('doj').value : '',
             uploadPurpose:       u('uploadPurpose'),
-            shgMember:           document.getElementById('shgMember').value,
-            physicallyChallenged: document.getElementById('physicallyChallenged').value,
-            networkProvider:     document.getElementById('networkProvider').value,
+            shgMember:           document.getElementById('shgMember') ? document.getElementById('shgMember').value : '',
+            physicallyChallenged: document.getElementById('physicallyChallenged') ? document.getElementById('physicallyChallenged').value : '',
+            networkProvider:     document.getElementById('networkProvider') ? document.getElementById('networkProvider').value : '',
             mailId:              v('mailId').toLowerCase(),  // email stays lowercase
             officeMailId:        v('officeMailId').toLowerCase(), // office/staff email — routing only, not stored in sheet
-            bankMitraActivity:   u('bankMitraActivity'),
-            replacedAgent:       u('replacedAgent'),
-            iibfCertified:       document.getElementById('iibfCertified').value,
+            bankMitraActivity:   'NO',
+            replacedAgent:       replacedAgentVal,
+            iibfCertified:       document.getElementById('iibfCertified') ? document.getElementById('iibfCertified').value : '',
             iibfCertificate:     u('iibfCertificate'),
-            certificateDate:     document.getElementById('certificateDate').value
+            certificateDate:     document.getElementById('certificateDate') ? document.getElementById('certificateDate').value : ''
         };
     }
 
@@ -2108,14 +2409,14 @@
         document.getElementById('success-screen').classList.remove('show');
         document.getElementById('error-screen').classList.remove('show');
 
-        // Unlock replacedAgent if it was locked
-        var agentDetails = document.getElementById('replacedAgent');
+        // Reset replacedAgent fields wrap
         var agentDetailsWrap = document.getElementById('replacedAgent-wrap');
-        if (agentDetailsWrap) agentDetailsWrap.classList.remove('hidden-field');
-        if (agentDetails) {
-            agentDetails.readOnly = false;
-            agentDetails.classList.remove('locked');
-        }
+        if (agentDetailsWrap) agentDetailsWrap.classList.add('hidden-field');
+        var repNameEl = document.getElementById('replacedAgentName');
+        var repIdEl = document.getElementById('replacedAgentId');
+        if (repNameEl) repNameEl.value = '';
+        if (repIdEl) repIdEl.value = '';
+        closeValidationModal();
         document.getElementById('uploadPurpose').value = '';
 
         // Reset all inputs
@@ -2162,7 +2463,23 @@
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 </script>
+<!-- ── Validation Error Modal Popup ────────────────────────── -->
+<div id="validationModal" class="validation-modal-overlay">
+    <div class="validation-modal-card">
+        <div class="validation-modal-header">
+            <h3>⚠️ Incomplete or Incorrect Information</h3>
+            <button type="button" class="validation-modal-close" onclick="closeValidationModal()">&times;</button>
+        </div>
+        <div class="validation-modal-body">
+            <p style="margin-bottom: 15px; color: #475569; font-size: 0.95rem;">
+                Please fix the following field(s) before submitting your application:
+            </p>
+            <div id="validationModalList" class="validation-error-list"></div>
+        </div>
+        <div class="validation-modal-footer">
+            <button type="button" class="btn-secondary" onclick="closeValidationModal()">Close & Review</button>
+        </div>
+    </div>
+</div>
 </body>
 </html>
-
-</div><!-- end step-container -->
