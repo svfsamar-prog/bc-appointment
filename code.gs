@@ -482,17 +482,20 @@ function generateAndEmailPdf_(formData, refId, siNo, subDT, isTest) {
       '</div>' +
       '</body></html>';
 
-    // ── Step 4: Convert HTML string to PDF blob (named with Name & Zone) ──
+    // ── Step 4: Convert HTML string to PDF blob (with graceful fallback) ──
     var safeName = (d.cspName ? String(d.cspName).trim() : 'Candidate').replace(/[^a-zA-Z0-9_\-]/g, '_');
     var safeZone = (d.zone ? String(d.zone).trim() : 'Zone').replace(/[^a-zA-Z0-9_\-]/g, '_');
     var pdfFilename = 'BC-Appointment-' + safeName + '-' + safeZone + '.pdf';
+    var attachments = [];
 
-    Logger.log('generateAndEmailPdf_: converting HTML to PDF named: ' + pdfFilename);
-    var htmlOutput = HtmlService.createHtmlOutput(html);
-    var pdfBlob = htmlOutput
-      .getAs('application/pdf')
-      .setName(pdfFilename);
-    Logger.log('generateAndEmailPdf_: PDF blob created, size=' + pdfBlob.getBytes().length);
+    try {
+      var htmlOutput = HtmlService.createHtmlOutput(html);
+      var pdfBlob = htmlOutput.getAs('application/pdf').setName(pdfFilename);
+      attachments.push(pdfBlob);
+      Logger.log('generateAndEmailPdf_: PDF created successfully, size=' + pdfBlob.getBytes().length);
+    } catch (pdfErr) {
+      Logger.log('generateAndEmailPdf_: PDF creation skipped (' + pdfErr.message + '), sending HTML email directly');
+    }
 
     // ── Step 5: Send email with Candidate, Branch, and Zone details ──
     var agentName  = d.cspName ? String(d.cspName).trim() : 'N/A';
@@ -512,180 +515,25 @@ function generateAndEmailPdf_(formData, refId, siNo, subDT, isTest) {
       '• Contact: ' + contactNo + '\n\n' +
       '• Reference ID: ' + refId + '\n' +
       '• Serial No.: ' + siNo + '\n' +
-      '• Submitted On: ' + subDT + '\n\n' +
-      'The filled application form is attached as: ' + pdfFilename;
+      '• Submitted On: ' + subDT;
 
     var htmlEmailBody =
       '<!DOCTYPE html><html><head><meta charset="UTF-8">' +
-      '<style>' +
-        '@media only screen and (max-width: 480px) {' +
-          '.email-container { max-width: 100% !important; border-radius: 0 !important; }' +
-          '.sig-table, .sig-table tbody, .sig-table tr { display: block !important; width: 100% !important; }' +
-          '.sig-col { display: block !important; width: 100% !important; text-align: center !important; margin-bottom: 12px !important; padding: 0 !important; }' +
-          '.sig-divider { display: none !important; }' +
-          '.detail-label { display: block !important; width: 100% !important; border-bottom: none !important; padding-bottom: 2px !important; }' +
-          '.detail-val { display: block !important; width: 100% !important; padding-top: 2px !important; padding-bottom: 10px !important; }' +
-        '}' +
-      '</style></head>' +
-      '<body style="margin:0;padding:0;background-color:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Helvetica,Arial,sans-serif;">' +
-
-        // Hidden preheader for clean inbox preview
-        '<div style="display:none;font-size:1px;color:#333333;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">' +
-          'New BC/BCA Application for ' + esc(agentName) + ' &bull; Branch: ' + esc(branchName) + ' (' + esc(zoneName) + ') &bull; Ref ID: ' + esc(refId) +
-        '</div>' +
-
-        '<div style="background-color:#f1f5f9;padding:16px 0;width:100%;">' +
-          '<table width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;background-color:#f1f5f9;">' +
-            '<tr>' +
-              '<td align="center" style="padding:0 8px;">' +
-                '<table width="100%" cellpadding="0" cellspacing="0" border="0" class="email-container" style="max-width:800px;width:100%;background:#ffffff;border-radius:10px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.08);border:1px solid #e2e8f0;">' +
-                  '<tr>' +
-                    '<td>' +
-
-                      '<!-- Header: #1a5c1a background, logo centered, 3.5px solid #d9531e bottom border -->' +
-                      '<div style="background:#1a5c1a;padding:22px 24px;text-align:center;border-bottom:3.5px solid #d9531e;">' +
-                        '<img src="' + LOGO_URL_SVF + '" alt="Sanjivani Vikas Foundation" style="max-height:65px;width:auto;display:block;margin:0 auto 10px auto;border:0;" />' +
-                        '<div style="font-size:20px;font-weight:900;color:#ffffff;letter-spacing:0.04em;margin-bottom:3px;">SANJIVANI VIKAS FOUNDATION</div>' +
-                        '<div style="font-size:11.5px;font-weight:700;color:#a7f3d0;text-transform:uppercase;letter-spacing:0.08em;">BC / BCA Appointment Application System</div>' +
-                      '</div>' +
-
-                      '<!-- Main Content -->' +
-                      '<div style="padding:24px 20px;">' +
-
-                        '<!-- Status Pill (Rounded 20px per state palette: success) -->' +
-                        '<div style="margin-bottom:20px;text-align:center;">' +
-                          '<span style="display:inline-block;background:#e8f5e9;color:#1a5c1a;border:1px solid #a7f3d0;font-size:11.5px;font-weight:800;padding:6px 16px;border-radius:20px;letter-spacing:0.05em;text-transform:uppercase;">' +
-                            '&#9989; New Application Received' +
-                          '</span>' +
-                        '</div>' +
-
-                        '<p style="font-size:14px;color:#475569;margin:0 0 18px 0;line-height:1.5;">' +
-                          'A new Business Correspondent (BC/BCA) appointment application has been submitted successfully. Below are the key applicant details:' +
-                        '</p>' +
-
-                        '<!-- Key Details Table (Single-column label/value rows with #e2e8f0 dividers) -->' +
-                        '<table width="100%" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;margin-bottom:24px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;">' +
-                          '<tr>' +
-                            '<td class="detail-label" style="padding:11px 16px;border-bottom:1px solid #e2e8f0;font-size:11px;font-weight:700;color:#64748b;width:32%;text-transform:uppercase;letter-spacing:0.04em;">Candidate Name</td>' +
-                            '<td class="detail-val" style="padding:11px 16px;border-bottom:1px solid #e2e8f0;font-size:15px;font-weight:800;color:#0f172a;">' + esc(agentName) + '</td>' +
-                          '</tr>' +
-                          '<tr>' +
-                            '<td class="detail-label" style="padding:11px 16px;border-bottom:1px solid #e2e8f0;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.04em;">Branch &amp; Code</td>' +
-                            '<td class="detail-val" style="padding:11px 16px;border-bottom:1px solid #e2e8f0;font-size:13.5px;font-weight:700;color:#1a5c1a;">' + esc(branchName) + (d.branchCode ? ' (' + esc(d.branchCode) + ')' : '') + '</td>' +
-                          '</tr>' +
-                          '<tr>' +
-                            '<td class="detail-label" style="padding:11px 16px;border-bottom:1px solid #e2e8f0;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.04em;">Zone &amp; State</td>' +
-                            '<td class="detail-val" style="padding:11px 16px;border-bottom:1px solid #e2e8f0;font-size:13.5px;font-weight:700;color:#0f172a;">' + esc(zoneName) + (d.state ? ' / ' + esc(d.state) : '') + '</td>' +
-                          '</tr>' +
-                          '<tr>' +
-                            '<td class="detail-label" style="padding:11px 16px;border-bottom:1px solid #e2e8f0;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.04em;">District &amp; Block</td>' +
-                            '<td class="detail-val" style="padding:11px 16px;border-bottom:1px solid #e2e8f0;font-size:13px;font-weight:600;color:#475569;">' + esc(distName) + (d.block ? ' / ' + esc(d.block) : '') + '</td>' +
-                          '</tr>' +
-                          '<tr>' +
-                            '<td class="detail-label" style="padding:11px 16px;border-bottom:1px solid #e2e8f0;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.04em;">Contact Number</td>' +
-                            '<td class="detail-val" style="padding:11px 16px;border-bottom:1px solid #e2e8f0;font-size:13.5px;font-weight:700;color:#2e7d32;">&#128222; ' + esc(contactNo) + '</td>' +
-                          '</tr>' +
-                          '<tr>' +
-                            '<td class="detail-label" style="padding:11px 16px;border-bottom:1px solid #e2e8f0;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.04em;">Reference ID</td>' +
-                            '<td class="detail-val" style="padding:11px 16px;border-bottom:1px solid #e2e8f0;font-size:13.5px;font-weight:800;color:#1a5c1a;font-family:monospace;">' + esc(refId) + '</td>' +
-                          '</tr>' +
-                          '<tr>' +
-                            '<td class="detail-label" style="padding:11px 16px;border-bottom:1px solid #e2e8f0;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.04em;">Serial Number</td>' +
-                            '<td class="detail-val" style="padding:11px 16px;border-bottom:1px solid #e2e8f0;font-size:13px;font-weight:700;color:#0f172a;">#' + esc(String(siNo)) + '</td>' +
-                          '</tr>' +
-                          '<tr>' +
-                            '<td class="detail-label" style="padding:11px 16px;font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.04em;">Submission Date</td>' +
-                            '<td class="detail-val" style="padding:11px 16px;font-size:12.5px;font-weight:600;color:#475569;">' + esc(subDT) + '</td>' +
-                          '</tr>' +
-                        '</table>' +
-
-                        '<!-- Attachment Callout Box (Light green #e8f5e9, 1.5px DASHED #d9531e border) -->' +
-                        '<div style="background:#e8f5e9;border:1.5px dashed #d9531e;border-radius:8px;padding:16px;text-align:center;margin-bottom:24px;">' +
-                          '<div style="font-size:14px;font-weight:800;color:#1a5c1a;margin-bottom:4px;">' +
-                            '&#128206; Application Form PDF Attached' +
-                          '</div>' +
-                          '<div style="font-size:12px;color:#475569;line-height:1.4;">' +
-                            'The filled application PDF (<b>' + esc(pdfFilename) + '</b>) is attached to this email for office records and verification.' +
-                          '</div>' +
-                        '</div>' +
-
-                        '<!-- SAMAR RAJ OFFICIAL SIGNATURE BLOCK -->' +
-                        '<table width="100%" style="margin-top:24px;border-top:2px solid #d9531e;border-collapse:collapse;">' +
-                          '<tr>' +
-                            '<td style="padding-top:14px;">' +
-                              '<div style="font-family:Georgia,serif;font-style:italic;font-size:13px;color:#1a5c1a;margin-bottom:12px;">With Regards,</div>' +
-                              '<table width="100%" cellpadding="0" cellspacing="0" border="0" class="sig-table">' +
-                                '<tr>' +
-
-                                  '<!-- Reused Sanjivani Logo (No headshot photo) -->' +
-                                  '<td width="72" valign="middle" align="center" class="sig-col" style="padding-right:10px;">' +
-                                    '<img src="' + LOGO_URL_SVF + '"' +
-                                      ' width="60" height="60"' +
-                                      ' style="display:block;border-radius:50%;border:2px solid #2e7d32;background:#ffffff;padding:2px;"' +
-                                      ' alt="Sanjivani Vikas Foundation"/>' +
-                                  '</td>' +
-
-                                  '<!-- Divider -->' +
-                                  '<td width="1" class="sig-divider" style="background:#d9531e;opacity:0.6;" valign="middle">&nbsp;</td>' +
-
-                                  '<!-- Info (Green family text + terracotta accents) -->' +
-                                  '<td class="sig-col" style="padding-left:14px;font-size:12px;line-height:1.7;vertical-align:top;">' +
-                                    '<div style="font-family:Georgia,serif;font-size:17px;font-weight:bold;color:#1a5c1a;line-height:1.2;">Samar Raj</div>' +
-                                    '<div style="font-size:10px;font-weight:700;color:#d9531e;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:6px;">Sanjivani Vikas Foundation</div>' +
-                                    '<div style="color:#475569;">' +
-                                      '&#9742; <a href="tel:+916123530060" style="color:#475569;text-decoration:none;">+91 612 353 0060</a>' +
-                                      '&nbsp;<span style="color:#d9531e;">|</span>&nbsp;' +
-                                      '&#128241; <a href="tel:+919241482083" style="color:#475569;text-decoration:none;">+91 9241482083</a>' +
-                                    '</div>' +
-                                    '<div style="color:#475569;">' +
-                                      '&#127760; <a href="https://sanjivani.foundation" style="color:#2e7d32;text-decoration:none;font-weight:600;">sanjivani.foundation</a>' +
-                                      '&nbsp;<span style="color:#d9531e;">|</span>&nbsp;' +
-                                      '&#9993; <a href="mailto:svf.samar@gmail.com" style="color:#2e7d32;text-decoration:none;font-weight:600;">svf.samar@gmail.com</a>' +
-                                    '</div>' +
-                                    '<div style="color:#64748b;font-size:11px;">' +
-                                      '&#128205; <a href="https://www.google.com/maps/place/Sanjivani+Vikas+Foundation/data=!4m2!3m1!1s0x0:0x2457f3187b270b1?sa=X&amp;ved=1t:2428&amp;ictx=111"' +
-                                        ' style="color:#64748b;text-decoration:none;">' +
-                                        'H/O Behind P.N.B., Mahatma Gandhi Nagar, Kankarbagh, Patna-800026 (Bihar)' +
-                                      '</a>' +
-                                    '</div>' +
-                                    '<div style="margin-top:6px;">' +
-                                      '<a href="https://wa.me/919241482083"' +
-                                        ' style="display:inline-block;background:#1a5c1a;color:#ffffff;font-size:11px;font-weight:600;text-decoration:none;padding:5px 14px;border-radius:20px;font-family:Arial,sans-serif;">' +
-                                        '&#128172; Chat on WhatsApp' +
-                                      '</a>' +
-                                    '</div>' +
-                                  '</td>' +
-
-                                  '<!-- QR Framed with 1px solid #d9531e border -->' +
-                                  '<td width="94" valign="top" align="center" class="sig-col" style="padding-left:10px;">' +
-                                    '<img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&amp;data=https://dashboard.sanjivani.foundation/verify/representative?id=SANJ00103S"' +
-                                      ' width="75" height="75"' +
-                                      ' style="display:block;border:1px solid #d9531e;padding:3px;background:#ffffff;border-radius:4px;"' +
-                                      ' alt="Verify QR"/>' +
-                                    '<div style="font-size:8px;color:#d9531e;font-weight:bold;margin-top:4px;letter-spacing:0.6px;text-transform:uppercase;font-family:Arial,sans-serif;">Scan to verify</div>' +
-                                  '</td>' +
-
-                                '</tr>' +
-                              '</table>' +
-                            '</td>' +
-                          '</tr>' +
-                        '</table>' +
-
-                      '</div>' +
-
-                      '<!-- Footer -->' +
-                      '<div style="background:#f8fafc;padding:12px 20px;text-align:center;border-top:1px solid #e2e8f0;font-size:10.5px;color:#64748b;line-height:1.4;">' +
-                        'Sanjivani Vikas Foundation &nbsp;&bull;&nbsp; Kankarbagh, Patna &nbsp;&bull;&nbsp; <a href="https://sanjivani.foundation/" style="color:#1a5c1a;text-decoration:none;font-weight:bold;">sanjivani.foundation</a>' +
-                      '</div>' +
-
-                    '</td>' +
-                  '</tr>' +
-                '</table>' +
-              '</td>' +
-            '</tr>' +
-          '</table>' +
-        '</div>' +
-      '</body></html>';
+      '<body style="margin:0;padding:20px;background-color:#f1f5f9;font-family:sans-serif;">' +
+      '<div style="max-width:700px;margin:0 auto;background:#fff;padding:24px;border-radius:10px;border:1px solid #cbd5e1;">' +
+      '<div style="background:#1a5c1a;color:#fff;padding:16px;text-align:center;border-radius:8px 8px 0 0;font-size:18px;font-weight:bold;">SANJIVANI VIKAS FOUNDATION — BC APPOINTMENT</div>' +
+      '<div style="padding:20px;line-height:1.6;color:#0f172a;">' +
+      '<h3>New Application Received</h3>' +
+      '<ul>' +
+      '<li><b>Candidate Name:</b> ' + esc(agentName) + '</li>' +
+      '<li><b>Branch & Code:</b> ' + esc(branchName) + ' (' + esc(d.branchCode) + ')</li>' +
+      '<li><b>Zone & State:</b> ' + esc(zoneName) + ' / ' + esc(d.state) + '</li>' +
+      '<li><b>District:</b> ' + esc(distName) + '</li>' +
+      '<li><b>Contact:</b> ' + esc(contactNo) + '</li>' +
+      '<li><b>Reference ID:</b> ' + esc(refId) + '</li>' +
+      '<li><b>Submitted On:</b> ' + esc(subDT) + '</li>' +
+      '</ul>' +
+      '</div></div></body></html>';
 
     Logger.log('generateAndEmailPdf_: sending email to ' + recipients);
     var mailSuccess = false;
@@ -698,7 +546,7 @@ function generateAndEmailPdf_(formData, refId, siNo, subDT, isTest) {
         body: plainBody,
         htmlBody: htmlEmailBody,
         name: 'SVF UCO BC Appointment System',
-        attachments: [pdfBlob]
+        attachments: attachments
       });
       mailSuccess = true;
       Logger.log('generateAndEmailPdf_: email sent successfully via MailApp');
@@ -708,7 +556,7 @@ function generateAndEmailPdf_(formData, refId, siNo, subDT, isTest) {
         GmailApp.sendEmail(recipients, emailSubject, plainBody, {
           htmlBody: htmlEmailBody,
           name: 'SVF UCO BC Appointment System',
-          attachments: [pdfBlob]
+          attachments: attachments
         });
         mailSuccess = true;
         Logger.log('generateAndEmailPdf_: email sent successfully via GmailApp fallback');

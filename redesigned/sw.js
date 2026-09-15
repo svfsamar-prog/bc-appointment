@@ -1,5 +1,5 @@
 // Redesigned App PWA Service Worker
-const CACHE_VERSION = '2026-09-15-v6';
+const CACHE_VERSION = '2026-09-15-v7';
 const CACHE_NAME = 'bc-appointment-redesigned-' + CACHE_VERSION;
 const APP_SHELL = ['./', './index.html', './styles.css', './app.js', './masterdata.js'];
 
