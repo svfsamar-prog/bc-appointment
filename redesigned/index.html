@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#1a5c1a">
+    <meta name="description" content="BC / BCA Appointment Form — Sanjivani Vikas Foundation × UCO Bank">
+    <meta name="apps-script-web-app-url" content="https://script.google.com/macros/s/AKfycbxYObNNRCYpzYsYGpzTSDd3nv4VfhI5d2WWcKfIAX-yJzBnlgwXOIXKVqfaWbelL2UZ/exec">
+    <title>BC / BCA Appointment Form — SVF × UCO Bank</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="styles.css">
+    <script src="masterdata.js"></script>
+    <script src="app.js" defer></script>
+</head>
+<body>
+
+    <!-- ── Top Header ────────────────────────────────────────── -->
+    <header class="app-header">
+        <div class="header-inner">
+            <div class="brand-logos">
+                <img src="https://res.cloudinary.com/date69bba/image/upload/v1774602823/SanjivaniVikasLogo_new_2_hpwra4.png" alt="SVF Logo" class="brand-logo">
+                <div class="brand-divider"></div>
+                <img src="https://res.cloudinary.com/date69bba/image/upload/v1776667693/uco-bank-logo_1_i04gtr.png" alt="UCO Bank Logo" class="brand-logo">
+            </div>
+            <div class="header-title-group">
+                <div class="header-app-title">BC / BCA Appointment Form</div>
+                <div class="header-app-sub">Sanjivani Vikas Foundation × UCO Bank</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ── Progress Bar & Step Tracker ───────────────────────── -->
+    <div class="progress-bar-container">
+        <div class="progress-bar-fill" id="progressBarFill"></div>
+    </div>
+
+    <div class="step-tracker-wrap">
+        <div class="step-tracker-inner">
+            <div class="step-pill active" onclick="goToStep(1)">
+                <span class="step-pill-num">1</span> Location
+            </div>
+            <div class="step-pill" onclick="goToStep(2)">
+                <span class="step-pill-num">2</span> Personal
+            </div>
+            <div class="step-pill" onclick="goToStep(3)">
+                <span class="step-pill-num">3</span> KYC & ID
+            </div>
+            <div class="step-pill" onclick="goToStep(4)">
+                <span class="step-pill-num">4</span> Bank A/C
+            </div>
+            <div class="step-pill" onclick="goToStep(5)">
+                <span class="step-pill-num">5</span> Professional
+            </div>
+            <div class="step-pill" onclick="goToStep(6)">
+                <span class="step-pill-num">6</span> IIBF Cert
+            </div>
+            <div class="step-pill" onclick="goToStep(7)">
+                <span class="step-pill-num">7</span> Review & Submit
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Main Form Container ───────────────────────────────── -->
+    <main class="main-container" id="appMainForm">
+
+        <!-- Draft Restore Banner -->
+        <div class="draft-notice-banner" id="draftNoticeBanner" style="display: none;">
+            <div class="draft-notice-info">
+                ℹ️ <span id="draftNoticeText">Saved draft restored.</span>
+            </div>
+            <div class="draft-actions">
+                <button type="button" class="btn-nav btn-secondary" style="padding: 4px 10px; font-size: 0.78rem;" onclick="restoreDraft()">Restore</button>
+                <button type="button" class="btn-nav btn-secondary" style="padding: 4px 10px; font-size: 0.78rem;" onclick="clearDraft()">Discard</button>
+            </div>
+        </div>
+
+        <!-- ── STEP 1: Location Details ───────────────────────── -->
+        <section class="step-card active" id="step-1">
+            <div class="card-header">
+                <div class="card-title-group">
+                    <div class="card-icon-badge">📍</div>
+                    <div>
+                        <div class="card-title">Location Details (SSA / Non-SSA)</div>
+                        <div class="card-subtitle">Select state, zone, and link branch for CSP appointment</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label" for="state">State <span class="req">*</span></label>
+                    <select class="form-control" id="state" required onchange="handleStateChange()">
+                        <option value="">— Loading States —</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="zone">Zone / Region <span class="req">*</span></label>
+                    <select class="form-control" id="zone" required disabled onchange="handleZoneChange()">
+                        <option value="">— Select Zone —</option>
+                    </select>
+                </div>
+
+                <div class="form-group searchable-select-wrap">
+                    <label class="form-label" for="branchSearch">Link Branch <span class="req">*</span></label>
+                    <div class="search-input-box">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" class="form-control" id="branchSearch" placeholder="Type branch name to search..." autocomplete="off" disabled oninput="filterBranches()">
+                    </div>
+                    <div class="branch-dropdown-list" id="branchDropdown"></div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="branchCode">Branch Code <span class="req">*</span></label>
+                    <input type="text" class="form-control" id="branchCode" placeholder="Auto-populated" readonly required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="district">District <span class="req">*</span></label>
+                    <input type="text" class="form-control" id="district" placeholder="Enter district" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="block">Block / Sub-District <span class="req">*</span></label>
+                    <input type="text" class="form-control" id="block" placeholder="Enter block name" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="villageName">Village / Gram Panchayat <span class="req">*</span></label>
+                    <input type="text" class="form-control" id="villageName" placeholder="Enter village or GP name" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="villageCode">Village Code (LGD / Census)</label>
+                    <input type="text" class="form-control" id="villageCode" placeholder="Enter 6-digit village code">
+                </div>
+            </div>
+        </section>
+
+        <!-- ── STEP 2: Personal & Contact ──────────────────────── -->
+        <section class="step-card" id="step-2">
+            <div class="card-header">
+                <div class="card-title-group">
+                    <div class="card-icon-badge">👤</div>
+                    <div>
+                        <div class="card-title">Permanent Address & Candidate Details</div>
+                        <div class="card-subtitle">Applicant personal information and permanent address</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label" for="cspName">CSP / Bank Mitra Candidate Name <span class="req">*</span></label>
+                    <input type="text" class="form-control" id="cspName" placeholder="Enter full candidate name" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="fathersName">Father's / Husband's Name <span class="req">*</span></label>
+                    <input type="text" class="form-control" id="fathersName" placeholder="Enter father's or husband's name" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="contactNumber">Primary Mobile Number <span class="req">*</span></label>
+                    <input type="tel" class="form-control" id="contactNumber" maxlength="10" placeholder="10-digit mobile number" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="altContactNo">Alternate Contact Number</label>
+                    <input type="tel" class="form-control" id="altContactNo" maxlength="10" placeholder="10-digit alternate mobile">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="dob">Date of Birth (DOB) <span class="req">*</span></label>
+                    <input type="date" class="form-control" id="dob" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Gender <span class="req">*</span></label>
+                    <input type="hidden" id="gender" value="Male" required>
+                    <div class="toggle-group" data-target="gender">
+                        <div class="toggle-btn active" data-value="Male">Male</div>
+                        <div class="toggle-btn" data-value="Female">Female</div>
+                        <div class="toggle-btn" data-value="Other">Other</div>
+                    </div>
+                </div>
+
+                <div class="form-group form-group-full">
+                    <label class="form-label" for="address">Permanent Address <span class="req">*</span></label>
+                    <input type="text" class="form-control" id="address" placeholder="House no, street, landmark, village" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="pinCode">PIN Code <span class="req">*</span></label>
+                    <input type="text" class="form-control" id="pinCode" maxlength="6" placeholder="6-digit PIN code" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="caste">Caste Category <span class="req">*</span></label>
+                    <select class="form-control" id="caste" required>
+                        <option value="">— Select Category —</option>
+                        <option value="General">General</option>
+                        <option value="OBC">OBC</option>
+                        <option value="SC">SC</option>
+                        <option value="ST">ST</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── STEP 3: KYC & Identification ────────────────────── -->
+        <section class="step-card" id="step-3">
+            <div class="card-header">
+                <div class="card-title-group">
+                    <div class="card-icon-badge">🪪</div>
+                    <div>
+                        <div class="card-title">KYC & Identification Details</div>
+                        <div class="card-subtitle">Official identification documents for background verification</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label" for="aadhaarNo">Aadhaar Number <span class="req">*</span></label>
+                    <input type="text" class="form-control" id="aadhaarNo" maxlength="14" placeholder="12-digit Aadhaar number" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="panNo">PAN Card Number <span class="req">*</span></label>
+                    <input type="text" class="form-control" id="panNo" maxlength="10" placeholder="10-character PAN (e.g. ABCDE1234F)" style="text-transform: uppercase;" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="otherIdType">Other Secondary ID Type</label>
+                    <select class="form-control" id="otherIdType">
+                        <option value="">— Select Optional ID —</option>
+                        <option value="Voter ID">Voter ID Card</option>
+                        <option value="Driving License">Driving License</option>
+                        <option value="Passport">Passport</option>
+                        <option value="Ration Card">Ration Card</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="otherIdNo">Secondary ID Number</label>
+                    <input type="text" class="form-control" id="otherIdNo" placeholder="Enter secondary ID number">
+                </div>
+            </div>
+        </section>
+
+        <!-- ── STEP 4: Bank Account Details ────────────────────── -->
+        <section class="step-card" id="step-4">
+            <div class="card-header">
+                <div class="card-title-group">
+                    <div class="card-icon-badge">🏦</div>
+                    <div>
+                        <div class="card-title">Bank Account Details</div>
+                        <div class="card-subtitle">Agent CIF and settlement account numbers</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label" for="agentCifNo">Agent CIF Number <span class="req">*</span></label>
+                    <input type="text" class="form-control" id="agentCifNo" placeholder="UCO Bank CIF number" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="settlementAccount">Settlement Account Number <span class="req">*</span></label>
+                    <input type="text" class="form-control" id="settlementAccount" placeholder="14-digit settlement A/C" required>
+                </div>
+
+                <div class="form-group form-group-full">
+                    <label class="form-label" for="savingAccount">Savings Account Number <span class="req">*</span></label>
+                    <input type="text" class="form-control" id="savingAccount" placeholder="14-digit savings A/C" required>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── STEP 5: Professional & Upload Purpose ────────────── -->
+        <section class="step-card" id="step-5">
+            <div class="card-header">
+                <div class="card-title-group">
+                    <div class="card-icon-badge">💼</div>
+                    <div>
+                        <div class="card-title">Professional & Operational Details</div>
+                        <div class="card-subtitle">Education, DOJ, Purpose, and Office Contact</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label" for="education">Educational Qualification <span class="req">*</span></label>
+                    <select class="form-control" id="education" required>
+                        <option value="">— Select Qualification —</option>
+                        <option value="10th Pass (Matric)">10th Pass (Matric)</option>
+                        <option value="12th Pass (Intermediate)">12th Pass (Intermediate)</option>
+                        <option value="Graduate">Graduate</option>
+                        <option value="Post Graduate">Post Graduate</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="doj">Date of Joining (DOJ) <span class="req">*</span></label>
+                    <input type="date" class="form-control" id="doj" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="uploadPurpose">Upload Purpose <span class="req">*</span></label>
+                    <select class="form-control" id="uploadPurpose" required>
+                        <option value="NEW">NEW APPOINTMENT</option>
+                        <option value="REPLACEMENT">REPLACEMENT</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="replaced-agent-name-wrap" style="display: none;">
+                    <label class="form-label" for="replacedAgentName">Replaced Agent Name</label>
+                    <input type="text" class="form-control" id="replacedAgentName" placeholder="Name of previous BC agent">
+                </div>
+
+                <div class="form-group" id="replaced-agent-id-wrap" style="display: none;">
+                    <label class="form-label" for="replacedAgentId">Replaced Agent ID</label>
+                    <input type="text" class="form-control" id="replacedAgentId" placeholder="ID of previous BC agent">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="networkProvider">Network Service Provider <span class="req">*</span></label>
+                    <select class="form-control" id="networkProvider" required>
+                        <option value="">— Select Mobile Operator —</option>
+                        <option value="Jio">Reliance Jio</option>
+                        <option value="Airtel">Bharti Airtel</option>
+                        <option value="VI (Vodafone Idea)">VI (Vodafone Idea)</option>
+                        <option value="BSNL">BSNL</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="mailId">Applicant Email ID <span class="req">*</span></label>
+                    <input type="email" class="form-control" id="mailId" placeholder="applicant@example.com" required>
+                </div>
+
+                <div class="form-group form-group-full">
+                    <label class="form-label" for="officeMailId">Office / Staff Notification Emails</label>
+                    <input type="text" class="form-control" id="officeMailId" placeholder="Comma-separated office emails (e.g. zone@sanjivani.foundation)">
+                </div>
+            </div>
+        </section>
+
+        <!-- ── STEP 6: IIBF Certification ──────────────────────── -->
+        <section class="step-card" id="step-6">
+            <div class="card-header">
+                <div class="card-title-group">
+                    <div class="card-icon-badge">🎓</div>
+                    <div>
+                        <div class="card-title">IIBF Certification Details</div>
+                        <div class="card-subtitle">Indian Institute of Banking & Finance (BC/BF) certification</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group form-group-full">
+                    <label class="form-label" for="iibfCertified">IIBF BC/BF Certification Status <span class="req">*</span></label>
+                    <select class="form-control" id="iibfCertified" required>
+                        <option value="No">No — Not Certified</option>
+                        <option value="Yes">Yes — Certified</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="iibf-cert-wrap" style="display: none;">
+                    <label class="form-label" for="iibfCertificate">Certificate Serial / Registration No.</label>
+                    <input type="text" class="form-control" id="iibfCertificate" placeholder="Enter IIBF certificate no.">
+                </div>
+
+                <div class="form-group" id="iibf-date-wrap" style="display: none;">
+                    <label class="form-label" for="certificateDate">Certificate Issue Date</label>
+                    <input type="date" class="form-control" id="certificateDate">
+                </div>
+            </div>
+        </section>
+
+        <!-- ── STEP 7: Application Review & Submit ─────────────── -->
+        <section class="step-card" id="step-7">
+            <div class="card-header">
+                <div class="card-title-group">
+                    <div class="card-icon-badge">📋</div>
+                    <div>
+                        <div class="card-title">Application Review & Final Submission</div>
+                        <div class="card-subtitle">Verify all filled details carefully before final submission</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="reviewGridContainer"></div>
+
+            <div style="margin-top: 20px; background: #fff8f6; border: 1.5px solid var(--accent-light); padding: 16px; border-radius: var(--radius);">
+                <div style="font-weight: 700; color: var(--accent); font-size: 0.9rem; margin-bottom: 4px;">⚠️ Declaration & Verification</div>
+                <div style="font-size: 0.82rem; color: var(--text-muted);">
+                    By clicking Submit Application below, you confirm that all entered information is accurate and matches official KYC documents. A PDF copy of this application will be generated and emailed to office records.
+                </div>
+            </div>
+        </section>
+
+        <!-- ── SUCCESS SCREEN (Hidden Initially) ────────────────── -->
+        <section class="step-card success-card" id="successScreenCard" style="display: none;">
+            <div class="success-icon-wrap">✓</div>
+            <h2 style="font-size: 1.6rem; font-weight: 800; color: var(--primary);">Application Submitted Successfully!</h2>
+            <p style="color: var(--text-muted); margin-top: 6px;">Your BC/BCA appointment application has been recorded in the central system.</p>
+
+            <div class="ref-id-badge" id="sRefId">SVF-UCO-20260915-000001</div>
+
+            <div style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 24px;">
+                📅 Submission Timestamp: <span id="sSubTime" style="font-weight: 700; color: var(--text);">15/09/2026 17:00:00</span>
+            </div>
+
+            <div style="display: flex; justify-content: center; gap: 12px;">
+                <button type="button" class="btn-nav btn-primary" onclick="window.location.reload()">+ Submit Another Application</button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ── Sticky Bottom Navigation Bar ────────────────────────── -->
+    <nav class="bottom-nav-bar">
+        <div class="bottom-nav-inner">
+            <button type="button" class="btn-nav btn-secondary" id="btnPrev" onclick="prevStep()" style="display: none;">
+                ← Back
+            </button>
+            <div style="font-size: 0.83rem; font-weight: 700; color: var(--text-muted);" id="stepIndicatorText">
+                Step 1 of 7
+            </div>
+            <button type="button" class="btn-nav btn-primary" id="btnNext" onclick="nextStep()">
+                Next Step →
+            </button>
+            <button type="button" class="btn-nav btn-submit" id="btnSubmit" onclick="handleSubmit()" style="display: none;">
+                ✓ Submit Application
+            </button>
+        </div>
+    </nav>
+
+    <!-- ── Validation Error Modal Popup ────────────────────────── -->
+    <div id="validationModal" class="validation-modal-overlay" style="display: none;">
+        <div class="validation-modal-card">
+            <div class="validation-modal-header">
+                <h3>⚠️ Incomplete or Missing Required Information</h3>
+                <button type="button" style="background:none;border:none;font-size:1.5rem;color:#991b1b;cursor:pointer;" onclick="closeValidationModal()">&times;</button>
+            </div>
+            <div class="validation-modal-body">
+                <p style="margin-bottom: 12px; color: #475569; font-size: 0.9rem;">
+                    Please fill out the following required field(s) before submitting your application:
+                </p>
+                <div id="validationModalList"></div>
+            </div>
+            <div style="padding: 14px 20px; background: #f8fafc; border-top: 1px solid var(--border); text-align: right;">
+                <button type="button" class="btn-nav btn-secondary" onclick="closeValidationModal()">Close & Review</button>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
