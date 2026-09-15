@@ -1653,19 +1653,21 @@
     function loadData() {
         setLoaderStatus('Loading settings…');
 
-        // Use static master data if available (avoids JSONP redirect issues with Apps Script)
-        var staticData = window.STATIC_MASTER_DATA;
-        var masterDataPromise;
-        if (staticData && staticData.success && Array.isArray(staticData.data)) {
-            masterDataPromise = Promise.resolve(staticData);
-        } else {
-            masterDataPromise = callBackend('getMasterData');
-        }
+        // Use static settings & master data if available (avoids network requests)
+        var staticSettings = window.STATIC_SETTINGS;
+        var settingsPromise = (staticSettings && staticSettings.success)
+            ? Promise.resolve(staticSettings)
+            : callBackend('getSettings');
 
-        callBackend('getSettings')
+        var staticData = window.STATIC_MASTER_DATA;
+        var masterDataPromise = (staticData && staticData.success && Array.isArray(staticData.data))
+            ? Promise.resolve(staticData)
+            : callBackend('getMasterData');
+
+        settingsPromise
             .then(function (res) {
-                if (!res.success) {
-                    showFatalError('Settings error: ' + res.error);
+                if (!res || !res.success) {
+                    showFatalError('Settings error: ' + (res ? res.error : 'Failed to load'));
                     return Promise.reject(new Error('settings_failed'));
                 }
                 setLoaderStatus('Loading branch master data…');
