@@ -14,12 +14,13 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apps-script-web-app-url" content="https://script.google.com/macros/s/AKfycbxYObNNRCYpzYsYGpzTSDd3nv4VfhI5d2WWcKfIAX-yJzBnlgwXOIXKVqfaWbelL2UZ/exec">
   <link rel="manifest" href="manifest.webmanifest">
+  <script src="masterdata.js"></script>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icon-192.png">
   <script>
     if ('serviceWorker' in navigator && location.protocol !== 'file:') {
       window.addEventListener('load', function () {
-        navigator.serviceWorker.register('./sw.js?v=5').then(function (registration) {
+        navigator.serviceWorker.register('./sw.js?v=6').then(function (registration) {
           registration.update();
           registration.addEventListener('updatefound', function () {
             var worker = registration.installing;
@@ -1649,14 +1650,24 @@
     // ── Load Settings + Master Data ────────────────────────────────
     function loadData() {
         setLoaderStatus('Loading settings…');
+
+        // Use static master data if available (avoids JSONP redirect issues with Apps Script)
+        var staticData = window.STATIC_MASTER_DATA;
+        var masterDataPromise;
+        if (staticData && staticData.success && Array.isArray(staticData.data)) {
+            masterDataPromise = Promise.resolve(staticData);
+        } else {
+            masterDataPromise = callBackend('getMasterData');
+        }
+
         callBackend('getSettings')
             .then(function (res) {
                 if (!res.success) {
                     showFatalError('Settings error: ' + res.error);
-                    return;
+                    return Promise.reject(new Error('settings_failed'));
                 }
                 setLoaderStatus('Loading branch master data…');
-                return callBackend('getMasterData');
+                return masterDataPromise;
             })
             .then(function (mRes) {
                 if (!mRes) return;
@@ -1677,10 +1688,15 @@
                 }, 400);
                 updateProgress();
             })
-            .catch(function (err) { showFatalError(err.message || String(err)); });
+            .catch(function (err) {
+                if (err && err.message !== 'settings_failed') {
+                    showFatalError(err.message || String(err));
+                }
+            });
     }
 
     // ── Backend Bridge (Apps Script + GitHub Pages PWA) ────────────
+
     function isAppsScriptHost() {
         return typeof google !== 'undefined' && google.script && google.script.run;
     }

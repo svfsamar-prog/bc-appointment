@@ -466,14 +466,24 @@
     // ── Load Settings + Master Data ────────────────────────────────
     function loadData() {
         setLoaderStatus('Loading settings…');
+
+        // Use static master data if available (avoids JSONP redirect issues with Apps Script)
+        var staticData = window.STATIC_MASTER_DATA;
+        var masterDataPromise;
+        if (staticData && staticData.success && Array.isArray(staticData.data)) {
+            masterDataPromise = Promise.resolve(staticData);
+        } else {
+            masterDataPromise = callBackend('getMasterData');
+        }
+
         callBackend('getSettings')
             .then(function (res) {
                 if (!res.success) {
                     showFatalError('Settings error: ' + res.error);
-                    return;
+                    return Promise.reject(new Error('settings_failed'));
                 }
                 setLoaderStatus('Loading branch master data…');
-                return callBackend('getMasterData');
+                return masterDataPromise;
             })
             .then(function (mRes) {
                 if (!mRes) return;
@@ -487,7 +497,11 @@
                 setTimeout(hideLoader, 400);
                 updateProgress();
             })
-            .catch(function (err) { showFatalError(err.message || String(err)); });
+            .catch(function (err) {
+                if (err && err.message !== 'settings_failed') {
+                    showFatalError(err.message || String(err));
+                }
+            });
     }
 
     // ── Backend Bridge (Apps Script + GitHub Pages PWA) ────────────
