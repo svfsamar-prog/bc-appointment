@@ -20,7 +20,7 @@
   <script>
     if ('serviceWorker' in navigator && location.protocol !== 'file:') {
       window.addEventListener('load', function () {
-        navigator.serviceWorker.register('./sw.js?v=6').then(function (registration) {
+        navigator.serviceWorker.register('./sw.js?v=7').then(function (registration) {
           registration.update();
           registration.addEventListener('updatefound', function () {
             var worker = registration.installing;
@@ -790,6 +790,8 @@
             border-bottom: 1px solid rgba(0,0,0,0.05);
             margin-bottom: 16px;
         }
+    }
+
     /* Validation Modal Popup */
     .validation-modal-overlay {
         display: none;
@@ -2006,12 +2008,16 @@
             listContainer.appendChild(itemEl);
         });
 
+        modal.style.display = 'flex';
         modal.classList.add('show');
     }
 
     function closeValidationModal() {
         var modal = document.getElementById('validationModal');
-        if (modal) modal.classList.remove('show');
+        if (modal) {
+            modal.classList.remove('show');
+            modal.style.display = 'none';
+        }
     }
 
     function jumpToStepAndField(stepNum, fieldId) {
@@ -2531,7 +2537,7 @@
     }
 </script>
 <!-- ── Validation Error Modal Popup ────────────────────────── -->
-<div id="validationModal" class="validation-modal-overlay">
+<div id="validationModal" class="validation-modal-overlay" style="display: none;">
     <div class="validation-modal-card">
         <div class="validation-modal-header">
             <h3>⚠️ Incomplete or Incorrect Information</h3>
