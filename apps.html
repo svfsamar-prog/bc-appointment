@@ -519,17 +519,9 @@
 
     function callBackendJsonp(webAppUrl, action, payload) {
         return new Promise(function (resolve, reject) {
-            var callbackName = '__bcAppointmentCallback_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
-            var separator = webAppUrl.indexOf('?') === -1 ? '?' : '&';
-            var src = webAppUrl + separator + 'api=' + encodeURIComponent(action) +
-                '&callback=' + encodeURIComponent(callbackName) +
-                '&_=' + Date.now();
-
-            if (payload !== undefined && payload !== null) {
-                src += '&payload=' + encodeURIComponent(JSON.stringify(payload));
-            }
-
+            var callbackName = '__bcCb_' + Date.now() + '_' + Math.floor(Math.random() * 1000000);
             var script = document.createElement('script');
+
             var timeoutId = window.setTimeout(function () {
                 cleanup();
                 reject(new Error('Apps Script request timed out. Please try again.'));
@@ -537,8 +529,14 @@
 
             function cleanup() {
                 window.clearTimeout(timeoutId);
-                if (script.parentNode) script.parentNode.removeChild(script);
-                try { delete window[callbackName]; } catch (e) { window[callbackName] = undefined; }
+                if (script && script.parentNode) {
+                    script.parentNode.removeChild(script);
+                }
+                // Keep dummy function so late execution never throws ReferenceError
+                window[callbackName] = function() {};
+                setTimeout(function() {
+                    try { delete window[callbackName]; } catch (e) { window[callbackName] = undefined; }
+                }, 10000);
             }
 
             window[callbackName] = function (data) {
@@ -550,6 +548,16 @@
                 cleanup();
                 reject(new Error('Unable to connect to Apps Script. Please check the deployment URL.'));
             };
+
+            var separator = webAppUrl.indexOf('?') === -1 ? '?' : '&';
+            var src = webAppUrl + separator + 'api=' + encodeURIComponent(action) +
+                '&callback=' + encodeURIComponent(callbackName) +
+                '&_=' + Date.now();
+
+            if (payload !== undefined && payload !== null) {
+                src += '&payload=' + encodeURIComponent(JSON.stringify(payload));
+            }
+
             script.src = src;
             document.head.appendChild(script);
         });

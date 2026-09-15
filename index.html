@@ -1709,35 +1709,47 @@
 
     function callBackendJsonp(webAppUrl, action, payload) {
         return new Promise(function(resolve, reject) {
-            var callbackName = 'jsonp_cb_' + Math.round(100000 * Math.random());
+            var callbackName = '__bcCb_' + Date.now() + '_' + Math.floor(Math.random() * 1000000);
             var script = document.createElement('script');
 
-            var timeout = setTimeout(function() {
-                delete window[callbackName];
-                if (script.parentNode) script.parentNode.removeChild(script);
+            var timeoutId = window.setTimeout(function() {
+                cleanup();
                 reject(new Error('Apps Script JSONP request timed out. Please check Web App deployment settings (Who has access: Anyone).'));
-            }, 25000);
+            }, 30000);
+
+            function cleanup() {
+                window.clearTimeout(timeoutId);
+                if (script && script.parentNode) {
+                    script.parentNode.removeChild(script);
+                }
+                // Keep dummy function so late execution never throws ReferenceError
+                window[callbackName] = function() {};
+                setTimeout(function() {
+                    try { delete window[callbackName]; } catch (e) { window[callbackName] = undefined; }
+                }, 10000);
+            }
 
             window[callbackName] = function(data) {
-                clearTimeout(timeout);
-                delete window[callbackName];
-                if (script.parentNode) script.parentNode.removeChild(script);
+                cleanup();
                 resolve(data);
             };
 
-            var url = webAppUrl + (webAppUrl.indexOf('?') >= 0 ? '&' : '?') +
-                'api=' + encodeURIComponent(action) +
-                '&payload=' + encodeURIComponent(JSON.stringify(payload || {})) +
-                '&callback=' + encodeURIComponent(callbackName);
-
             script.onerror = function() {
-                clearTimeout(timeout);
-                delete window[callbackName];
-                if (script.parentNode) script.parentNode.removeChild(script);
+                cleanup();
                 reject(new Error('CORS / Access Blocked by Google Apps Script. In Apps Script, click Deploy > Manage Deployments > Edit and set "Who has access" to "Anyone".'));
             };
 
-            script.src = url;
+            var separator = webAppUrl.indexOf('?') === -1 ? '?' : '&';
+            var src = webAppUrl + separator +
+                'api=' + encodeURIComponent(action) +
+                '&callback=' + encodeURIComponent(callbackName) +
+                '&_=' + Date.now();
+
+            if (payload !== undefined && payload !== null) {
+                src += '&payload=' + encodeURIComponent(JSON.stringify(payload));
+            }
+
+            script.src = src;
             document.head.appendChild(script);
         });
     }
