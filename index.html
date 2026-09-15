@@ -1704,7 +1704,7 @@
             return Promise.reject(new Error('GitHub Pages setup needed: add your deployed Apps Script Web App URL to the apps-script-web-app-url meta tag.'));
         }
 
-        return callBackendPost(webAppUrl, action, payload);
+        return callBackendJsonp(webAppUrl, action, payload);
     }
 
     function callBackendJsonp(webAppUrl, action, payload) {
