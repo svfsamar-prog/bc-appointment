@@ -1724,6 +1724,10 @@
             return Promise.reject(new Error('GitHub Pages setup needed: add your deployed Apps Script Web App URL to the apps-script-web-app-url meta tag.'));
         }
 
+        if (action === 'submitApplication') {
+            return callBackendPost(webAppUrl, action, payload);
+        }
+
         return callBackendJsonp(webAppUrl, action, payload);
     }
 
@@ -2535,7 +2539,7 @@
     }
 </script>
 <!-- ── Validation Error Modal Popup ────────────────────────── -->
-<div id="validationModal" class="validation-modal-overlay" style="display: none;">
+<div id="validationModal" class="validation-modal-overlay">
     <div class="validation-modal-card">
         <div class="validation-modal-header">
             <h3>⚠️ Incomplete or Incorrect Information</h3>

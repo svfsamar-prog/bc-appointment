@@ -520,18 +520,27 @@
         var formData = collectFormData();
         var webAppUrl = getWebAppUrl();
 
-        // Use JSONP directly to handle Google Apps Script redirects reliably across all browser origins
-        callBackendJsonp(webAppUrl, 'submitApplication', formData)
+        callBackendPost(webAppUrl, 'submitApplication', formData)
             .then(function (res) {
                 submitBlocked = false;
-                clearDraft();
-                showSuccessScreen(res ? res.referenceId : '', res ? res.submissionDateTime : '', res ? res.siNo : '');
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Submit Application';
+                }
+                if (res && res.success) {
+                    clearDraft();
+                    showSuccessScreen(res.referenceId, res.submissionDateTime, res.siNo);
+                } else {
+                    alert((res && res.error) || 'Submission failed on server. Please try again.');
+                }
             })
             .catch(function (err) {
                 submitBlocked = false;
-                console.warn('Backend response handled:', err);
-                clearDraft();
-                showSuccessScreen('SVF-UCO-SUBMITTED', new Date().toLocaleString(), '');
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Submit Application';
+                }
+                alert(err.message || 'Connection failed. Please check network connection and try again.');
             });
     };
 

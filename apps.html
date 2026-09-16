@@ -528,7 +528,32 @@
             return Promise.reject(new Error('GitHub Pages setup needed: add your deployed Apps Script Web App URL to the apps-script-web-app-url meta tag.'));
         }
 
+        if (action === 'submitApplication') {
+            return callBackendPost(webAppUrl, action, payload);
+        }
+
         return callBackendJsonp(webAppUrl, action, payload);
+    }
+
+    function callBackendPost(webAppUrl, action, payload) {
+        return fetch(webAppUrl, {
+            method: 'POST',
+            redirect: 'follow',
+            headers: {
+                'Content-Type': 'text/plain;charset=utf-8'
+            },
+            body: JSON.stringify({ action: action, payload: payload })
+        })
+        .then(function(response) {
+            if (!response.ok) {
+                throw new Error('Network response was not ok (status: ' + response.status + ')');
+            }
+            return response.json();
+        })
+        .catch(function(error) {
+            console.warn('POST fetch failed:', error);
+            throw error;
+        });
     }
 
     function callBackendJsonp(webAppUrl, action, payload) {
