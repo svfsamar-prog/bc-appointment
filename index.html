@@ -2539,17 +2539,22 @@
     // ── Duplicate Warning Modal ─────────────────────────────────────
     function showDupModal(fieldName, existingName, existingRef) {
         var fieldLabel = fieldName || 'Aadhaar / PAN';
-        document.getElementById('dup-field-label').textContent = fieldLabel + ' Number';
-        document.getElementById('dup-matched-field').textContent = fieldLabel + ' Number';
-        document.getElementById('dup-field-text').textContent = fieldLabel;
-        document.getElementById('dup-existing-name').textContent = existingName || 'N/A';
-        document.getElementById('dup-existing-ref').textContent = existingRef || 'N/A';
-        document.getElementById('dupModal').classList.add('show');
-        window.scrollTo(0, 0);
+        var el;
+        if ((el = document.getElementById('dup-field-label'))) el.textContent = fieldLabel + ' Number';
+        if ((el = document.getElementById('dup-matched-field'))) el.textContent = fieldLabel + ' Number';
+        if ((el = document.getElementById('dup-field-text'))) el.textContent = fieldLabel;
+        if ((el = document.getElementById('dup-existing-name'))) el.textContent = existingName || 'N/A';
+        if ((el = document.getElementById('dup-existing-ref'))) el.textContent = existingRef || 'N/A';
+        var modal = document.getElementById('dupModal');
+        if (modal) {
+            modal.classList.add('show');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
     }
 
     function closeDupModal() {
-        document.getElementById('dupModal').classList.remove('show');
+        var modal = document.getElementById('dupModal');
+        if (modal) modal.classList.remove('show');
     }
 
     // ── Success Screen ─────────────────────────────────────────────
@@ -2657,6 +2662,8 @@
             <button type="button" class="btn-secondary" onclick="closeValidationModal()">Close & Review</button>
         </div>
     </div>
+</div>
+
 <!-- ── Duplicate Application Warning Modal ──────────────────── -->
 <div id="dupModal" class="dup-modal-overlay">
     <div class="dup-modal-card">
