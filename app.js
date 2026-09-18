@@ -597,10 +597,11 @@
             var callbackName = '__bcCb_' + Date.now() + '_' + Math.floor(Math.random() * 1000000);
             var script = document.createElement('script');
 
+            var timeoutDuration = (action === 'submitApplication') ? 120000 : 45000;
             var timeoutId = setTimeout(function () {
                 cleanup();
                 reject(new Error('JSONP request timed out.'));
-            }, 30000);
+            }, timeoutDuration);
 
             function cleanup() {
                 clearTimeout(timeoutId);

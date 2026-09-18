@@ -1800,10 +1800,11 @@
             var callbackName = '__bcCb_' + Date.now() + '_' + Math.floor(Math.random() * 1000000);
             var script = document.createElement('script');
 
+            var timeoutDuration = (action === 'submitApplication') ? 120000 : 45000;
             var timeoutId = window.setTimeout(function() {
                 cleanup();
-                reject(new Error('Apps Script JSONP request timed out. Please check Web App deployment settings (Who has access: Anyone).'));
-            }, 30000);
+                reject(new Error('Submission is taking longer than expected. Please check your sheet to see if the record was added before retrying.'));
+            }, timeoutDuration);
 
             function cleanup() {
                 window.clearTimeout(timeoutId);
