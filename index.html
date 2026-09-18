@@ -1772,26 +1772,6 @@
         return (window.APPS_SCRIPT_WEB_APP_URL || (meta && meta.content) || DEFAULT_APPS_SCRIPT_WEB_APP_URL || '').trim();
     }
 
-    function callBackend(action, payload) {
-        if (isAppsScriptHost()) {
-            return new Promise(function (resolve, reject) {
-                google.script.run
-                    .withSuccessHandler(resolve)
-                    .withFailureHandler(reject)[action](payload);
-            });
-        }
-
-        var webAppUrl = getWebAppUrl();
-        if (!webAppUrl) {
-            return Promise.reject(new Error('GitHub Pages setup needed: add your deployed Apps Script Web App URL to the apps-script-web-app-url meta tag.'));
-        }
-
-        if (action === 'submitApplication') {
-            return callBackendPost(webAppUrl, action, payload);
-        }
-
-        return callBackendJsonp(webAppUrl, action, payload);
-    }
 
     function callBackendJsonp(webAppUrl, action, payload) {
         return new Promise(function(resolve, reject) {
@@ -1840,24 +1820,43 @@
         });
     }
 
+    function callBackend(action, payload) {
+        // ── When running INSIDE Apps Script (google.script.run available) ──
+        if (isAppsScriptHost()) {
+            return new Promise(function (resolve, reject) {
+                google.script.run
+                    .withSuccessHandler(resolve)
+                    .withFailureHandler(reject)[action](payload);
+            });
+        }
+
+        // ── When running from GitHub Pages / external host ──
+        // Always use JSONP (GET). The POST path is NOT used because
+        // script.googleusercontent.com/macros/echo always returns 404
+        // on cross-origin redirects — this is a known Google Apps Script
+        // limitation. JSONP via doGet() works reliably for all actions
+        // including submitApplication. Duplicate entries are prevented
+        // by the server-side Aadhaar/PAN duplicate check in code.gs.
+        var webAppUrl = getWebAppUrl();
+        if (!webAppUrl) {
+            return Promise.reject(new Error('GitHub Pages setup needed: add your deployed Apps Script Web App URL to the apps-script-web-app-url meta tag.'));
+        }
+
+        return callBackendJsonp(webAppUrl, action, payload);
+    }
+
+    // callBackendPost is kept but NOT called — preserved for reference only.
     function callBackendPost(webAppUrl, action, payload) {
         return fetch(webAppUrl, {
             method: 'POST',
             redirect: 'follow',
-            headers: {
-                'Content-Type': 'text/plain;charset=utf-8'
-            },
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify({ action: action, payload: payload })
         })
         .then(function(response) {
-            if (!response.ok) {
-                throw new Error('Network response was not ok (status: ' + response.status + ')');
-            }
+            if (!response.ok) throw new Error('HTTP ' + response.status);
             return response.json();
         });
-        // ⚠️ NO JSONP fallback for write operations.
-        // The POST already runs on the server even when the browser sees a CORS error
-        // on the redirect — falling back to JSONP would create a second duplicate entry.
     }
 
     function setLoaderStatus(msg) {
