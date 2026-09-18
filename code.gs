@@ -755,9 +755,47 @@ function submitApplication(formData) {
       ? toUpper_(formData.iibfCertificate)
       : 'NO';
 
-    // Get last SINo (if lastRow is 1, it's just headers, so next is 1. If lastRow is 2, next is 2)
+    // ── Duplicate Check: Aadhaar & PAN ──────────────────────────────
+    // Scan all existing rows (skip header row 1). If Aadhaar No (col 29)
+    // or PAN No (col 35) already exists, block submission and return error.
+    var aadhaarInput = toStr_(formData.aadhaarNo).replace(/\s+/g, '');
+    var panInput     = toUpper_(formData.panNo).replace(/\s+/g, '');
+
     var lastRow = appointmentsSheet.getLastRow();
-    var siNo    = lastRow > 0 ? lastRow : 1;
+
+    if (lastRow > 1) {
+      // Read only the columns we need: cols 29 (Aadhaar), 35 (PAN), 53 (ReferenceID)
+      var totalRows = lastRow - 1; // exclude header
+      var aadhaarCol = appointmentsSheet.getRange(2, 29, totalRows, 1).getValues();
+      var panCol     = appointmentsSheet.getRange(2, 35, totalRows, 1).getValues();
+      var refCol     = appointmentsSheet.getRange(2, 53, totalRows, 1).getValues();
+      var nameCol    = appointmentsSheet.getRange(2, 12, totalRows, 1).getValues(); // CSP Name col 12
+
+      for (var di = 0; di < totalRows; di++) {
+        var existingAadhaar = String(aadhaarCol[di][0] || '').replace(/\s+/g, '');
+        var existingPan     = String(panCol[di][0] || '').replace(/\s+/g, '').toUpperCase();
+        var existingRef     = String(refCol[di][0] || '');
+        var existingName    = String(nameCol[di][0] || '');
+
+        var aadhaarMatch = aadhaarInput && existingAadhaar && aadhaarInput === existingAadhaar;
+        var panMatch     = panInput     && existingPan     && panInput     === existingPan;
+
+        if (aadhaarMatch || panMatch) {
+          lock.releaseLock();
+          return {
+            success: false,
+            duplicate: true,
+            duplicateField: aadhaarMatch ? 'Aadhaar' : 'PAN',
+            existingRef: existingRef,
+            existingName: existingName,
+            error: 'DUPLICATE_APPLICATION'
+          };
+        }
+      }
+    }
+
+    // Get last SINo (if lastRow is 1, it's just headers, so next is 1. If lastRow is 2, next is 2)
+    var siNo = lastRow > 0 ? lastRow : 1;
 
     // Build row — EXACT column order from BC_APPOINTMENTS
     // SINo | BCPartner | Bank | State | Region | District | Block | Branch | BranchCode |

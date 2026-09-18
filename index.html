@@ -908,6 +908,68 @@
         text-align: right;
     }
 
+    /* ── Duplicate Warning Modal ─────────────────────────────── */
+    .dup-modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(15, 23, 42, 0.65);
+        backdrop-filter: blur(4px);
+        z-index: 10001;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        box-sizing: border-box;
+    }
+    .dup-modal-overlay.show { display: flex; }
+    .dup-modal-card {
+        background: #ffffff;
+        border-radius: 16px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+        max-width: 440px;
+        width: 100%;
+        overflow: hidden;
+        animation: modalPopIn 0.25s ease-out;
+    }
+    .dup-modal-header {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        padding: 20px 20px 16px;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .dup-modal-header-icon { font-size: 28px; flex-shrink: 0; }
+    .dup-modal-header h3 { margin: 0; font-size: 1.1rem; font-weight: 800; }
+    .dup-modal-header p  { margin: 4px 0 0; font-size: 0.85rem; opacity: 0.9; }
+    .dup-modal-body { padding: 20px; }
+    .dup-detail-row {
+        background: #fffbeb;
+        border: 1px solid #fde68a;
+        border-radius: 10px;
+        padding: 14px 16px;
+        margin-bottom: 12px;
+    }
+    .dup-detail-label {
+        font-size: 11px; font-weight: 700; color: #92400e;
+        text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px;
+    }
+    .dup-detail-value { font-size: 15px; font-weight: 700; color: #1e293b; word-break: break-all; }
+    .dup-info-text {
+        font-size: 13px; color: #64748b; line-height: 1.55; margin-bottom: 16px;
+    }
+    .dup-modal-footer {
+        display: flex; flex-direction: column; gap: 8px;
+        padding: 0 20px 20px;
+    }
+    .btn-dup-edit {
+        background: #f1f5f9; color: #1e293b;
+        border: 1.5px solid #e2e8f0; border-radius: 10px;
+        padding: 13px; font-size: 15px; font-weight: 700;
+        cursor: pointer; font-family: inherit; transition: background .15s;
+    }
+    .btn-dup-edit:hover { background: #e2e8f0; }
+
 </style>
 </head>
 <body>
@@ -1024,8 +1086,8 @@
                     </div>
 
                 <div class="form-group">
-                    <label>Village Name <span class="required-mark">*</span></label>
-                    <input type="text" id="villageName" placeholder="Enter village name" autocomplete="off">
+                    <label>Location (Village Name) <span class="required-mark">*</span></label>
+                    <input type="text" id="villageName" placeholder="Enter location / village name" autocomplete="off">
                 <span class="field-error" id="err-villageName">This field is required.</span>
                     </div>
 
@@ -1792,11 +1854,10 @@
                 throw new Error('Network response was not ok (status: ' + response.status + ')');
             }
             return response.json();
-        })
-        .catch(function(error) {
-            console.warn('POST fetch failed, trying JSONP fallback:', error);
-            return callBackendJsonp(webAppUrl, action, payload);
         });
+        // ⚠️ NO JSONP fallback for write operations.
+        // The POST already runs on the server even when the browser sees a CORS error
+        // on the redirect — falling back to JSONP would create a second duplicate entry.
     }
 
     function setLoaderStatus(msg) {
@@ -2438,6 +2499,9 @@
                 submitBlocked = false;
                 if (res.success) {
                     showSuccessScreen(res.referenceId, res.submissionDateTime, res.siNo);
+                } else if (res.duplicate) {
+                    // Duplicate Aadhaar or PAN — show warning popup
+                    showDupModal(res.duplicateField, res.existingName, res.existingRef);
                 } else {
                     showErrorScreen(res.error || 'Unknown error from server.');
                 }
@@ -2448,6 +2512,22 @@
                 submitBlocked = false;
                 showErrorScreen(err.message || 'Connection failed. Please try again.');
             });
+    }
+
+    // ── Duplicate Warning Modal ─────────────────────────────────────
+    function showDupModal(fieldName, existingName, existingRef) {
+        var fieldLabel = fieldName || 'Aadhaar / PAN';
+        document.getElementById('dup-field-label').textContent = fieldLabel + ' Number';
+        document.getElementById('dup-matched-field').textContent = fieldLabel + ' Number';
+        document.getElementById('dup-field-text').textContent = fieldLabel;
+        document.getElementById('dup-existing-name').textContent = existingName || 'N/A';
+        document.getElementById('dup-existing-ref').textContent = existingRef || 'N/A';
+        document.getElementById('dupModal').classList.add('show');
+        window.scrollTo(0, 0);
+    }
+
+    function closeDupModal() {
+        document.getElementById('dupModal').classList.remove('show');
     }
 
     // ── Success Screen ─────────────────────────────────────────────
@@ -2553,6 +2633,38 @@
         </div>
         <div class="validation-modal-footer">
             <button type="button" class="btn-secondary" onclick="closeValidationModal()">Close & Review</button>
+        </div>
+    </div>
+<!-- ── Duplicate Application Warning Modal ──────────────────── -->
+<div id="dupModal" class="dup-modal-overlay">
+    <div class="dup-modal-card">
+        <div class="dup-modal-header">
+            <div class="dup-modal-header-icon">⚠️</div>
+            <div>
+                <h3>Duplicate Application Detected</h3>
+                <p>An application with this <span id="dup-field-label">Aadhaar / PAN</span> already exists.</p>
+            </div>
+        </div>
+        <div class="dup-modal-body">
+            <div class="dup-detail-row">
+                <div class="dup-detail-label">Matched Field</div>
+                <div class="dup-detail-value" id="dup-matched-field">—</div>
+            </div>
+            <div class="dup-detail-row">
+                <div class="dup-detail-label">Existing Applicant</div>
+                <div class="dup-detail-value" id="dup-existing-name">—</div>
+            </div>
+            <div class="dup-detail-row">
+                <div class="dup-detail-label">Existing Reference ID</div>
+                <div class="dup-detail-value" id="dup-existing-ref">—</div>
+            </div>
+            <p class="dup-info-text">
+                This application cannot be submitted because the same <b id="dup-field-text">Aadhaar / PAN</b> number is already registered in our system.<br><br>
+                If this is a correction or update, please contact the administrator.
+            </p>
+        </div>
+        <div class="dup-modal-footer">
+            <button type="button" class="btn-dup-edit" onclick="closeDupModal()">✏️ Go Back & Edit Form</button>
         </div>
     </div>
 </div>
