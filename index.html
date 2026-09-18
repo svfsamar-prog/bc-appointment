@@ -1773,6 +1773,28 @@
     }
 
 
+    function compressFormData(d) {
+        if (!d || typeof d !== 'object') return d;
+        var keyMap = {
+            state: 's', zone: 'z', district: 'd', block: 'b', branch: 'br', branchCode: 'bc',
+            villageName: 'vn', villageCode: 'vc', cspName: 'cn', contactNumber: 'c', altContactNo: 'ac',
+            fathersName: 'fn', aadhaarNo: 'an', otherIdType: 'oit', otherIdNo: 'oin', agentCifNo: 'cif',
+            settlementAccount: 'sa', savingAccount: 'sba', panNo: 'pn', address: 'a', pinCode: 'pc',
+            education: 'ed', doj: 'doj', dob: 'dob', gender: 'g', shgMember: 'shg', physicallyChallenged: 'dis',
+            caste: 'cst', iibfCertified: 'iibf', iibfCertificate: 'ic', certificateDate: 'cd',
+            uploadPurpose: 'up', bankMitraActivity: 'bm', replacedAgent: 'rep', networkProvider: 'np',
+            mailId: 'm', officeMailId: 'om'
+        };
+        var compressed = {};
+        for (var k in d) {
+            var val = d[k];
+            if (val === null || val === undefined || val === '') continue;
+            var shortKey = keyMap[k] || k;
+            compressed[shortKey] = val;
+        }
+        return compressed;
+    }
+
     function callBackendJsonp(webAppUrl, action, payload) {
         return new Promise(function(resolve, reject) {
             var callbackName = '__bcCb_' + Date.now() + '_' + Math.floor(Math.random() * 1000000);
@@ -1812,7 +1834,8 @@
                 '&_=' + Date.now();
 
             if (payload !== undefined && payload !== null) {
-                src += '&payload=' + encodeURIComponent(JSON.stringify(payload));
+                var p = (action === 'submitApplication') ? compressFormData(payload) : payload;
+                src += '&payload=' + encodeURIComponent(JSON.stringify(p));
             }
 
             script.src = src;

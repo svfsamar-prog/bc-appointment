@@ -715,10 +715,38 @@ function generateAndEmailPdf_(formData, refId, siNo, subDT, isTest) {
   }
 }
 
+// ── expandFormData_ ───────────────────────────────────────────
+// Unpacks compact/abbreviated form keys (from lightweight JSONP requests)
+// into full field names. If already in full format, returns as-is.
+
+function expandFormData_(d) {
+  if (!d || typeof d !== 'object') return {};
+  if (d.cspName || d.state || d.aadhaarNo) return d;
+
+  var map = {
+    s: 'state', z: 'zone', d: 'district', b: 'block', br: 'branch', bc: 'branchCode',
+    vn: 'villageName', vc: 'villageCode', cn: 'cspName', c: 'contactNumber', ac: 'altContactNo',
+    fn: 'fathersName', an: 'aadhaarNo', oit: 'otherIdType', oin: 'otherIdNo', cif: 'agentCifNo',
+    sa: 'settlementAccount', sba: 'savingAccount', pn: 'panNo', a: 'address', pc: 'pinCode',
+    ed: 'education', doj: 'doj', dob: 'dob', g: 'gender', shg: 'shgMember', dis: 'physicallyChallenged',
+    cst: 'caste', iibf: 'iibfCertified', ic: 'iibfCertificate', cd: 'certificateDate',
+    up: 'uploadPurpose', bm: 'bankMitraActivity', rep: 'replacedAgent', np: 'networkProvider',
+    m: 'mailId', om: 'officeMailId'
+  };
+  var expanded = {};
+  for (var k in d) {
+    var fullKey = map[k] || k;
+    expanded[fullKey] = d[k];
+  }
+  return expanded;
+}
+
 // ── submitApplication ────────────────────────────────────────
 // Full column order matches BC_APPOINTMENTS headers exactly.
 
 function submitApplication(formData) {
+  formData = expandFormData_(formData || {});
+
   var lock = LockService.getScriptLock();
   try {
     lock.waitLock(15000); // wait up to 15s
@@ -730,30 +758,10 @@ function submitApplication(formData) {
     var settingsSheet     = getSheet_(SHEET_SETTINGS);
     var appointmentsSheet = getSheet_(SHEET_APPOINTMENTS);
 
-    // Read settings
-    var settingsData   = settingsSheet.getDataRange().getValues();
-    var settingsMap    = {};
-    settingsData.forEach(function(r) {
-      if (r[0]) settingsMap[String(r[0]).trim()] = String(r[1]).trim();
-    });
-
-    var bcPartner = settingsMap['BCPartner'] || 'Sanjivani Vikas Foundation';
-    var bank      = settingsMap['Bank']      || 'UCO Bank';
-    var prefix    = settingsMap['ReferencePrefix'] || 'SVF-UCO';
-
-    // Generate Reference ID (counter incremented here inside lock)
-    var refId    = generateReferenceId_(settingsSheet, prefix);
-    var subDT    = getSubmissionDateTime_();
-
     // Helper: uppercase a string field, return '' if blank
     function toUpper_(val) { return val ? String(val).trim().toUpperCase() : ''; }
     // Helper: return value as plain string (no case change) — for numbers/codes
     function toStr_(val) { return val ? String(val).trim() : ''; }
-
-    // Determine IIBF value: save certificate number or 'NO'
-    var iibfValue = (formData.iibfCertified === 'Yes' && formData.iibfCertificate)
-      ? toUpper_(formData.iibfCertificate)
-      : 'NO';
 
     // ── Duplicate Check: Aadhaar & PAN ──────────────────────────────
     // Scan all existing rows (skip header row 1). If Aadhaar No (col 29)
@@ -764,12 +772,12 @@ function submitApplication(formData) {
     var lastRow = appointmentsSheet.getLastRow();
 
     if (lastRow > 1) {
-      // Read only the columns we need: cols 29 (Aadhaar), 35 (PAN), 53 (ReferenceID)
+      // Read only the columns we need: cols 29 (Aadhaar), 35 (PAN), 53 (ReferenceID), 12 (CSP Name)
       var totalRows = lastRow - 1; // exclude header
       var aadhaarCol = appointmentsSheet.getRange(2, 29, totalRows, 1).getValues();
       var panCol     = appointmentsSheet.getRange(2, 35, totalRows, 1).getValues();
       var refCol     = appointmentsSheet.getRange(2, 53, totalRows, 1).getValues();
-      var nameCol    = appointmentsSheet.getRange(2, 12, totalRows, 1).getValues(); // CSP Name col 12
+      var nameCol    = appointmentsSheet.getRange(2, 12, totalRows, 1).getValues();
 
       for (var di = 0; di < totalRows; di++) {
         var existingAadhaar = String(aadhaarCol[di][0] || '').replace(/\s+/g, '');
@@ -793,6 +801,26 @@ function submitApplication(formData) {
         }
       }
     }
+
+    // Read settings (only if not a duplicate)
+    var settingsData   = settingsSheet.getDataRange().getValues();
+    var settingsMap    = {};
+    settingsData.forEach(function(r) {
+      if (r[0]) settingsMap[String(r[0]).trim()] = String(r[1]).trim();
+    });
+
+    var bcPartner = settingsMap['BCPartner'] || 'Sanjivani Vikas Foundation';
+    var bank      = settingsMap['Bank']      || 'UCO Bank';
+    var prefix    = settingsMap['ReferencePrefix'] || 'SVF-UCO';
+
+    // Generate Reference ID (counter incremented only for valid, non-duplicate submissions)
+    var refId    = generateReferenceId_(settingsSheet, prefix);
+    var subDT    = getSubmissionDateTime_();
+
+    // Determine IIBF value: save certificate number or 'NO'
+    var iibfValue = (formData.iibfCertified === 'Yes' && formData.iibfCertificate)
+      ? toUpper_(formData.iibfCertificate)
+      : 'NO';
 
     // Get last SINo (if lastRow is 1, it's just headers, so next is 1. If lastRow is 2, next is 2)
     var siNo = lastRow > 0 ? lastRow : 1;
