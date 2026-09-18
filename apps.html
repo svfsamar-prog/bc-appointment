@@ -878,7 +878,7 @@
                 submitBlocked = false;
                 if (res.success) {
                     showSuccessScreen(res.referenceId, res.submissionDateTime);
-                } else if (res.duplicate) {
+                } else if (res.duplicate || res.error === 'DUPLICATE_APPLICATION') {
                     // Duplicate Aadhaar or PAN — show warning popup
                     showDupModal(res.duplicateField, res.existingName, res.existingRef);
                 } else {

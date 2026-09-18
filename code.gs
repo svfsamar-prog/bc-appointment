@@ -781,7 +781,7 @@ function submitApplication(formData) {
         var panMatch     = panInput     && existingPan     && panInput     === existingPan;
 
         if (aadhaarMatch || panMatch) {
-          lock.releaseLock();
+          // Do NOT call lock.releaseLock() here — the finally block handles it.
           return {
             success: false,
             duplicate: true,
